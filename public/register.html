@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="./images/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./images/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="./images/favicon_io/site.webmanifest">
+    <title>Register</title>
+</head>
+<body>
+    <div id="welcome"><p>Welcome</p></div>
+    <div id="login">
+        <form action="/ma-page-de-traitement" method="post">
+            <div>
+                <label for="name">Name :</label>
+                <input type="text" id="name" name="user_name" required>
+            </div>
+            <div>
+                <label for="password">Password :</label>
+                <input type="password" id="password" name="user_password" required autocomplete="new-password">
+            </div>
+            <div>
+                <label for="confirm-password">Confirm :</label>
+                <input type="password" id="c-password" name="user_confirmation" required>
+            </div>
+            <div>
+                <label for="mail">Mail :</label>
+                <input type="email" id="mail" name="user_mail" required>
+            </div>
+        </form>
+        <input type="submit" id="submit" value="Register">
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script type="module" src="../scripts_front/register.js"></script> 
+</body>
+</html>
