@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notation de contours DICOM</title>
+    <title>Register</title>
 </head>
 <body>
     <div id="welcome"><p>Welcome</p></div>
@@ -16,13 +16,20 @@
             </div>
             <div>
                 <label for="password">Password :</label>
-                <input type="password" id="password" name="user_password" required autocomplete="current-password">
+                <input type="password" id="password" name="user_password" required autocomplete="new-password">
+            </div>
+            <div>
+                <label for="confirm-password">Confirm :</label>
+                <input type="password" id="c-password" name="user_confirmation" required>
+            </div>
+            <div>
+                <label for="mail">Mail :</label>
+                <input type="email" id="mail" name="user_mail" required>
             </div>
         </form>
-        <div id="register">New ? Go to <a href="register.html">Register</a> page</div>
-        <input id="submit" type="submit" value="Log in">
+        <input type="submit" id="submit" value="Register">
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
-    <script src="../scripts_front/home.js"></script> 
+    <script src="../scripts_front/register.js"></script> 
 </body>
 </html>
