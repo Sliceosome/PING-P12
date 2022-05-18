@@ -1,5 +1,5 @@
 import { Individual } from "./Individual.js";
-var tab=new Array();
+export var tab=new Array();
 
 export function getUsers(){
     return tab;
@@ -18,11 +18,6 @@ export function addUser(name,email,password){
 
 export function connectUser(name,password){
     let res = tab.filter(elmt => elmt.name == name && elmt.password == password);
-    if(res.length != 0){
-        console.log("Successful connexion");
-    }else{
-        console.log("You don't have any account");
-    }
     console.log("nb users = " + tab.length);
     return res.length == 0;
 }

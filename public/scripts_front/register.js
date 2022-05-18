@@ -1,5 +1,25 @@
 import * as users from "../scripts_backs/users.js"
 
+// class user extends React.Component {        //Afficher l'historique des notations via appel à bdd
+//     render() {
+//       return (
+//         <div className="user">
+//           <h1>Account for {this.props.name_}</h1>
+//           <div id="historique">
+//           <ul>
+//             <li>note 1</li>
+//             <li>note 2</li>
+//             <li>note 3</li>
+//           </ul>
+//           </div>
+//           <div id="process">
+//               <input id="processing" type="button" value="Go to Processing page ?"></input>
+//           </div>
+//         </div>
+//       );
+//     }
+//   }
+
 $(document).ready(function(){ 
     document.getElementById("submit").onclick = function() {
         var name = document.getElementById("name").value;
@@ -18,6 +38,10 @@ $(document).ready(function(){
         }else{  //Parcours HashMap utilisateurs dans list users.
             if(users.addUser(name,mail,pwd)){
                 alert("You already have an account");
+            }else{
+                alert("Congratulation on successfully resgistration " + name + " !");
+                let content = document.getElementById("account");
+                content.style.display = "block";
             }
         }
         
