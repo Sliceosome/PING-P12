@@ -1,11 +1,13 @@
 const path = require('path');
 const http = require('http');
+const {spawn} = require('child_process');
 const express = require('express');
 
 const app = express();
 const server = http.createServer(app);
 const mysql = require('mysql')
-const config = {
+
+const config = {    //Parameters to connect to database. To change with the real parameters.
   host: 'localhost',
   user: 'root',
   password: '',
@@ -19,7 +21,7 @@ var connection = null;
 
 app.use(express.static(path.join(__dirname,'public')));
 
-//Connection to the database
+//Connection to the database, need to be called before each Database request. It handles timeout errors
 
 function initializeConnection(config) {
   function addDisconnectHandler(connection) {
@@ -28,7 +30,6 @@ function initializeConnection(config) {
               if (error.code === "PROTOCOL_CONNECTION_LOST") {
                   console.error(error.stack);
                   console.log("Lost connection. Reconnecting...");
-
                   initializeConnection(connection.config);
               } else if (error.fatal) {
                   throw error;
@@ -52,9 +53,25 @@ app.post('/request',(req,res)=>{
     if(err){throw err;}
     else{
     console.log('The solution is: ', rows[0].COUNTRY_NAME);
-    res.send(rows.COUNTRY_NAME);}
+    //res.send(rows[0].COUNTRY_NAME);}
+    }
     connection.end();
   })
+  var dataToSend;
+  // spawn new child process to call the python script
+  const python = spawn('python', ['test.py',"moi.PNG"]);
+  // collect data from script
+  python.stdout.on('data', function (data) {
+   console.log('Pipe data from python script ...');
+   dataToSend = data.toString();
+   //console.log("gneu python = " +dataToSend);
+  });
+  // in close event we are sure that stream from child process is closed
+  python.on('close', (code) => {
+  console.log(`child process close all stdio with code ${code}`);
+  // send data to browser
+  res.send(dataToSend)
+  });
 });
 
 app.use(function(request, response, next) {
