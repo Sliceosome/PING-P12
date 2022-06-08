@@ -3,7 +3,7 @@ from pydicom import dcmread
 import os 
 
 # Paths
-initialFolder = 'D:/Télécom/FISE/Semestre 8/PING/PING-P12/Initial_Files/CT+2RTS/'
+initialFolder = './Initial_Files/CT+2RTS/'
 destinationFolder = './'
 
 # Folder management
