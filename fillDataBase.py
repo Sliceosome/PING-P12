@@ -26,15 +26,15 @@ try:
     request = "SELECT `id_organ` FROM organ"
     cursor.execute(request)
     idOrganList = [item[0] for item in cursor.fetchall()]
-    print(idOrganList)
+    # print(idOrganList)
 
     request = "SELECT `name` FROM organ"
     cursor.execute(request)
     nameList = [item[0] for item in cursor.fetchall()]
-    print(nameList)
+    # print(nameList)
 
     dictOrgan = dict(zip(nameList, idOrganList))
-    print(dictOrgan)
+    # print(dictOrgan)
 
     # INSERT Request
     for organ in organList:
