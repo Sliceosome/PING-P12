@@ -19,7 +19,7 @@ try:
         cursor.execute(request)
 
 
-    # Fill "contour" table ##
+    ## Fill "contour" table ##
     organList = os.listdir(contoursFolder)
 
     # Create dictionnary in order to fill id_organ
