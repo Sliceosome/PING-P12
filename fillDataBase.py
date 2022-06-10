@@ -54,13 +54,19 @@ try:
 
             for rtStruct in rtStructList:
 
+                # Build paths
                 contourPath = contoursFolder + organ + '/' + scan + '/' + rtStruct
                 contourScanPath = scansFolder + scan + '/'
 
+                # Take information in RT_Struct
                 ds = dcmread(contourPath)
                 isHandCrafted = dictHandcrafted[ds.Manufacturer]
+                ctName = "CT_" + ds.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].ReferencedSOPInstanceUID[:-2]
+                ctFirstItem = ds.ROIContourSequence[0].ContourSequence[-1].ContourImageSequence[0].ReferencedSOPInstanceUID.rsplit('.')[-1]
+                ctLastItem = ds.ROIContourSequence[0].ContourSequence[0].ContourImageSequence[0].ReferencedSOPInstanceUID.rsplit('.')[-1]
 
-                request = "INSERT INTO `contour` (`path`, `scan_path`, `id_organ`, `is_handcrafted`) VALUES ('" + contourPath + "', '" + contourScanPath + "', '" + str(dictOrgan[organ]) + "', '" + isHandCrafted + "')"
+                # INSERT Request
+                request = "INSERT INTO `contour` (`path`, `scan_path`, `id_organ`, `is_handcrafted`, `ct_root`, `ct_first_item`, `ct_last_item`) VALUES ('" + contourPath + "', '" + contourScanPath + "', '" + str(dictOrgan[organ]) + "', '" + isHandCrafted + "', '" + ctName + "', '" + ctFirstItem + "', '" + ctLastItem + "')"
                 cursor.execute(request)
 
     # Apply changes
