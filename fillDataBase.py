@@ -1,5 +1,7 @@
 import mysql.connector as mc
 import os
+import pydicom as pd
+from pydicom import dcmread
 
 try:
     ## Database connection ##
@@ -36,6 +38,11 @@ try:
     dictOrgan = dict(zip(nameList, idOrganList))
     # print(dictOrgan)
 
+    # Define a dictionnary in order to fill is_handcrafted
+    # 1 : handcrafted
+    # 0 : AI
+    dictHandcrafted = {"Limbus AI Inc.": "0", "TheraPanacea": "1"}
+
     # INSERT Request
     for organ in organList:
 
@@ -50,7 +57,10 @@ try:
                 contourPath = contoursFolder + organ + '/' + scan + '/' + rtStruct
                 contourScanPath = scansFolder + scan + '/'
 
-                request = "INSERT INTO `contour` (`path`, `scan_path`, `id_organ`) VALUES ('" + contourPath + "', '" + contourScanPath + "', '" + str(dictOrgan[organ]) + "')"
+                ds = dcmread(contourPath)
+                isHandCrafted = dictHandcrafted[ds.Manufacturer]
+
+                request = "INSERT INTO `contour` (`path`, `scan_path`, `id_organ`, `is_handcrafted`) VALUES ('" + contourPath + "', '" + contourScanPath + "', '" + str(dictOrgan[organ]) + "', '" + isHandCrafted + "')"
                 cursor.execute(request)
 
     # Apply changes
