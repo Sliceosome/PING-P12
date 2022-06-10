@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : ven. 10 juin 2022 à 11:21
+-- Généré le : ven. 10 juin 2022 à 11:38
 -- Version du serveur : 10.4.24-MariaDB
 -- Version de PHP : 8.1.6
 
@@ -154,7 +154,8 @@ INSERT INTO `organ` (`id_organ`, `name`) VALUES
 --
 ALTER TABLE `contour`
   ADD PRIMARY KEY (`id_contour`),
-  ADD UNIQUE KEY `path` (`path`);
+  ADD UNIQUE KEY `path` (`path`),
+  ADD KEY `fk_contour_organ` (`id_organ`);
 
 --
 -- Index pour la table `organ`
@@ -178,6 +179,16 @@ ALTER TABLE `contour`
 --
 ALTER TABLE `organ`
   MODIFY `id_organ` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+
+--
+-- Contraintes pour les tables déchargées
+--
+
+--
+-- Contraintes pour la table `contour`
+--
+ALTER TABLE `contour`
+  ADD CONSTRAINT `fk_contour_organ` FOREIGN KEY (`id_organ`) REFERENCES `organ` (`id_organ`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
