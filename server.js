@@ -12,7 +12,7 @@ const config = {    //Parameters to connect to database. To change with the real
   user: 'root',
   password: '',
   port : 3306,
-  database: 'notes_bd'
+  database: 'test2'
 };
 
 var connection = null;
@@ -49,10 +49,10 @@ function initializeConnection(config) {
 
 app.post('/request',(req,res)=>{
   connection = initializeConnection(config);
-  connection.query('SELECT * FROM countries', (err, rows, fields) => {
+  connection.query('SELECT organ.name, contour.path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ?',[req.body.outline], (err, rows, fields) => {
     if(err){throw err;}
     else{
-    console.log('The solution is: ', rows[0].COUNTRY_NAME);
+    console.log('The solution is: ', rows[0].contour.path);
     //res.send(rows[0].COUNTRY_NAME);}
     }
     connection.end();
