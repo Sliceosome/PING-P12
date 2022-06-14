@@ -2,6 +2,7 @@ const path = require('path');
 const http = require('http');
 const {spawn} = require('child_process');
 const express = require('express');
+var bodyParser = require('body-parser')
 
 const app = express();
 const server = http.createServer(app);
@@ -47,12 +48,23 @@ function initializeConnection(config) {
   return connection;
 }
 
-app.post('/request',(req,res)=>{
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
+var path1 = "";
+var path2 = "";
+
+app.post('/request',urlencodedParser,(req,res)=>{
   connection = initializeConnection(config);
-  connection.query('SELECT organ.name, contour.path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ?',[req.body.outline], (err, rows, fields) => {
+  console.log(req.body)
+  connection.query('SELECT organ.name, contour.path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ? order by rand()',[req.body.outline], (err, rows, fields) => {
+  //  connection.query('SELECT * from countries', (err, rows, fields) => {
+
     if(err){throw err;}
     else{
-    console.log('The solution is: ', rows[0].contour.path);
+    console.log('The solution is: ', rows[0].path);
+     path1 = rows[0].path;
+      if(req.body.two){
+         path2 = rows[1].path
+      }
     //res.send(rows[0].COUNTRY_NAME);}
     }
     connection.end();
@@ -69,10 +81,29 @@ app.post('/request',(req,res)=>{
   python.on('close', (code) => {
   console.log(`child process close all stdio with code ${code}`);
   // send data to browser
-  const jsonData = require('./outline2.json'); 
+  let jsonData = require('./outline.json'); 
   dataToSend = dataToSend + jsonData
   res.send(dataToSend)
   });
+});
+
+app.post('/unknown_frame',urlencodedParser,(req,res)=>{
+  var nb = req.body.number;
+  const python = spawn('python', ['test.py',"tablesturned.JPG"]);
+  python.stdout.on('data', function (data) {
+    console.log('Pipe data from python script ...');
+    dataToSend = data.toString();
+   });
+   // in close event we are sure that stream from child process is closed
+   python.on('close', (code) => {
+   console.log(`child process close all stdio with code ${code}`);
+   // send data to browser
+   delete require.cache[require.resolve('./outline.json')]
+   let jsonData = require('./outline.json');
+   console.log(dataToSend);
+   dataToSend = dataToSend + jsonData
+   res.send(dataToSend)
+   });
 });
 
 app.use(function(request, response, next) {
