@@ -1,0 +1,16 @@
+.images {
+    display: block;
+    position: absolute;
+    top: 30 px;
+    left: 100 px;
+}
+
+.hide {
+    display: none;
+}
+
+button {
+    cursor: pointer;
+    align-content:flex-start;
+    margin-top: 0%;
+  }
