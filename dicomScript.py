@@ -1,3 +1,4 @@
+from turtle import rt
 import pydicom as pd
 from pydicom import dcmread
 import matplotlib.pyplot as plt
@@ -61,6 +62,7 @@ def convert_global_aix_to_net_pos(data):
     return point_data_sequence
 
 dicomFolder = '.\Initial_Files\TESTS'
+destinationFolder = '.\IMG'
 
 scanList =  [dicomFolder + "\\" + s for s in os.listdir(dicomFolder)]
 
@@ -81,6 +83,22 @@ for scan in scanList:
 
     for rtPath in rtPathList:
 
+        dsRT = pd.dcmread(rtPath)
+
+        temp = rtPath.rsplit('\\',1)
+        temp2 = temp[0].rsplit('\\',1)
+        scanFolder = temp2[1]
+
+        rtFolderTemp = rtPath.rsplit('\\',1)
+        rtFolderTemp2 = rtFolderTemp[1].rsplit('.',1)
+        rtFolder = rtFolderTemp2[0]
+
+        for structureSetROISequence in dsRT.StructureSetROISequence:
+            os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName)         
+            os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder)
+            os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder)
+            os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC')
+
         dictDicomFiles = {"dcm_files" : ctPathList, "rt_file" : rtPath}
         # print(dictDicomFiles)
         data = load_data(dictDicomFiles)
@@ -88,8 +106,8 @@ for scan in scanList:
         dataPoint = convert_global_aix_to_net_pos(data)
         with open("output.txt", "w") as f:
             for seq in data['rt_data'].keys():
-                print(dataPoint[6].keys(), file=f)
-        
+                print(dictDicomFiles['rt_file'], file=f)
+            
         for key in dataPoint.keys():
             for item in dataPoint[key].keys():
                 listDataPoint = list(dataPoint[key][item])
@@ -117,8 +135,9 @@ for scan in scanList:
 
                 plt.imshow(imgRGB)
                 plt.axis('off')
-                plt.savefig('./test3/' + str(item).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=1)
-                # plt.savefig('./test3/' + str(item).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+
+                # plt.savefig(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(item).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=1)
+                plt.savefig('./test3/' + str(item).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
 
 
 
