@@ -20,33 +20,45 @@ def load_data(sample):
 
     # rt data
     rt_data = dict()
+    rt_data_seq = dict()
     ds = pd.dcmread(sample['rt_file'])
-    sequences = ds.ROIContourSequence[0].ContourSequence
-    for sequence in sequences:
-        ruid = sequence.ContourImageSequence[0].ReferencedSOPInstanceUID
-        array = sequence.ContourData
-        num = sequence.NumberOfContourPoints
-        rt_data[ruid] = {'pointNumber': num, 'array': array}
-    data['rt_data']=rt_data
+    for ROISequence in ds.ROIContourSequence:
+        sequences = ROISequence.ContourSequence
+        for sequence in sequences:
+            ruid = sequence.ContourImageSequence[0].ReferencedSOPInstanceUID
+            array = sequence.ContourData
+            num = sequence.NumberOfContourPoints
+            rt_data[ruid] = {'pointNumber': num, 'array': array}
+        rt_data_seq[ROISequence.ReferencedROINumber] = rt_data
+    data['rt_data'] = rt_data_seq
     return data
 
 def convert_global_aix_to_net_pos(data):
     point_data = {}
-    for uid, value in data['rt_data'].items():
-        num = value['pointNumber']
-        label_data = value['array']
-        dcm_origin = data['dcms_data'][uid]['dcmOrigin']
-        dcm_spacing = data['dcms_data'][uid]['dcmSpacing']
+    point_data_sequence = {}
+    for seq in data['rt_data'].values():
+        for uid, value in seq.items():
+            num = value['pointNumber']
+            label_data = value['array']
+            dcm_origin = data['dcms_data'][uid]['dcmOrigin']
+            dcm_spacing = data['dcms_data'][uid]['dcmSpacing']
 
-        point = []
-        for i in range(0, len(label_data), 3):
-            x = label_data[i]
-            y = label_data[i + 1]
-            X = int((float(x) - float(dcm_origin[0])) / float(dcm_spacing[0]))
-            Y = int((float(y) - float(dcm_origin[1])) / float(dcm_spacing[1]))
-            point.append((X, Y))
-        point_data[uid] = point
-    return point_data
+            point = []
+            for i in range(0, len(label_data), 3):
+                x = label_data[i]
+                y = label_data[i + 1]
+                X = int((float(x) - float(dcm_origin[0])) / float(dcm_spacing[0]))
+                Y = int((float(y) - float(dcm_origin[1])) / float(dcm_spacing[1]))
+                point.append((X, Y))
+            point_data[uid] = point   
+        # listTemp = []
+        # for key in seq.keys():
+        #     listTemp.append(key)
+        # point_data_sequence[listTemp[0]] = point_data
+        for k, v in data['rt_data'].items():
+            if v == seq:
+                point_data_sequence[k] = point_data
+    return point_data_sequence
 
 dicomFolder = '.\Initial_Files\TESTS'
 
@@ -72,35 +84,42 @@ for scan in scanList:
         dictDicomFiles = {"dcm_files" : ctPathList, "rt_file" : rtPath}
         # print(dictDicomFiles)
         data = load_data(dictDicomFiles)
+        # print(data['rt_data'].items())
         dataPoint = convert_global_aix_to_net_pos(data)
-        for key in dataPoint.keys():
-            listDataPoint = list(dataPoint[key])
-
-            imgRGB = np.zeros([512, 512, 3], dtype=np.uint8)
-
-            ctFile = scan + '\\CT_' + key + '.dcm'
-            ds = dcmread(ctFile)
-            img = ds.pixel_array
-            # print("min : ", np.min(img),"max : ", np.max(img))
-            imgRGB[:,:,0] = (img + 300) / 10
-            imgRGB[:,:,1] = (img + 300) / 10
-            imgRGB[:,:,2] = (img + 300) / 10
-
-            R = 255
-            G = 0
-            B = 255
-
-            for point in listDataPoint:
-                x = point[1]
-                y = point[0]
-                imgRGB[x][y][0] = R
-                imgRGB[x][y][1] = G
-                imgRGB[x][y][2] = B
-
-            plt.imshow(imgRGB)
-            plt.axis('off')
-            plt.savefig('./test2/' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+        with open("output.txt", "w") as f:
+            for seq in data['rt_data'].keys():
+                print(dataPoint[6].keys(), file=f)
         
+        for key in dataPoint.keys():
+            for item in dataPoint[key].keys():
+                listDataPoint = list(dataPoint[key][item])
+
+                imgRGB = np.zeros([512, 512, 3], dtype=np.uint8)
+
+                ctFile = scan + '\\CT_' + item + '.dcm'
+                ds = dcmread(ctFile)
+                img = ds.pixel_array
+                # print("min : ", np.min(img),"max : ", np.max(img))
+                imgRGB[:,:,0] = (img + 300) / 10
+                imgRGB[:,:,1] = (img + 300) / 10
+                imgRGB[:,:,2] = (img + 300) / 10
+
+                R = 255
+                G = 0
+                B = 255
+
+                for point in listDataPoint:
+                    x = point[1]
+                    y = point[0]
+                    imgRGB[x][y][0] = R
+                    imgRGB[x][y][1] = G
+                    imgRGB[x][y][2] = B
+
+                plt.imshow(imgRGB)
+                plt.axis('off')
+                plt.savefig('./test3/' + str(item).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=1)
+                # plt.savefig('./test3/' + str(item).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+
 
 
 
