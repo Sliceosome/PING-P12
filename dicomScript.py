@@ -49,7 +49,7 @@ def convert_global_aix_to_net_pos(data):
     return point_data
 
 dicomFolder = '.\Initial_Files\TESTS'
-destinationFolder = '.\IMG'
+destinationFolder = '.\DATABASE'
 
 scanList =  [dicomFolder + "\\" + s for s in os.listdir(dicomFolder)]
 
@@ -127,4 +127,4 @@ for scan in scanList:
                         if structureSetROISequence.ROINumber == ROIContourSequence.ReferencedROINumber:
                             organName = structureSetROISequence.ROIName
 
-                plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=100)
+                plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
