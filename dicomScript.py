@@ -104,7 +104,6 @@ for scan in scanList:
                 ctFile = scan + '\\CT_' + key + '.dcm'
                 ds = dcmread(ctFile)
                 img = ds.pixel_array
-                # print("min : ", np.min(img),"max : ", np.max(img))
                 imgRGB[:,:,0] = (img + 300) / 10
                 imgRGB[:,:,1] = (img + 300) / 10
                 imgRGB[:,:,2] = (img + 300) / 10
