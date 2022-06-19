@@ -49,6 +49,7 @@ def convert_global_aix_to_net_pos(data):
     return point_data
 
 dicomFolder = '.\Initial_Files\TESTS'
+destinationFolder = '.\IMG'
 
 scanList =  [dicomFolder + "\\" + s for s in os.listdir(dicomFolder)]
 
@@ -65,6 +66,25 @@ for scan in scanList:
     for rtPath in rtPathList:
 
         dsRT = pd.dcmread(rtPath)
+
+        temp = rtPath.rsplit('\\',1)
+        temp2 = temp[0].rsplit('\\',1)
+        scanFolder = temp2[1]
+
+        rtFolderTemp = rtPath.rsplit('\\',1)
+        rtFolderTemp2 = rtFolderTemp[1].rsplit('.',1)
+        rtFolder = rtFolderTemp2[0]
+
+        for structureSetROISequence in dsRT.StructureSetROISequence:
+            if not os.path.isdir(destinationFolder + '\\' + structureSetROISequence.ROIName):
+                os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName)
+            if not os.path.isdir(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder):       
+                os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder)
+            if not os.path.isdir(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder):  
+                os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder)
+            if not os.path.isdir(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC'):  
+                os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC')
+
         for ROIContourSequence in dsRT.ROIContourSequence:
             ctPathList = []
             for ContourSequence in ROIContourSequence.ContourSequence:
@@ -102,4 +122,10 @@ for scan in scanList:
 
                 plt.imshow(imgRGB)
                 plt.axis('off')
-                plt.savefig('./test2/' + str(ROIContourSequence.ReferencedROINumber) + '_' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+
+                organName = ''
+                for structureSetROISequence in dsRT.StructureSetROISequence:
+                        if structureSetROISequence.ROINumber == ROIContourSequence.ReferencedROINumber:
+                            organName = structureSetROISequence.ROIName
+
+                plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=100)
