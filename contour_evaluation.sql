@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : lun. 20 juin 2022 à 11:56
+-- Généré le : lun. 20 juin 2022 à 12:19
 -- Version du serveur : 10.4.24-MariaDB
 -- Version de PHP : 8.1.6
 
@@ -106,6 +106,27 @@ INSERT INTO `organ` (`id_organ`, `name`) VALUES
 (11, 'CTV_NECK_LEVEL5_L'),
 (12, 'Esophagus');
 
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `users`
+--
+
+CREATE TABLE `users` (
+  `id_user` int(11) NOT NULL,
+  `username` varchar(45) NOT NULL,
+  `email` varchar(45) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `iv` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `users`
+--
+
+INSERT INTO `users` (`id_user`, `username`, `email`, `password`, `iv`) VALUES
+(1, 'gneu', 'gnau@gmail.com', 'a4b879d7104924f39b7aac', '20788ecb56797944d469f110607fd56c');
+
 --
 -- Index pour les tables déchargées
 --
@@ -122,7 +143,9 @@ ALTER TABLE `contour`
 -- Index pour la table `grade`
 --
 ALTER TABLE `grade`
-  ADD PRIMARY KEY (`id_grade`);
+  ADD PRIMARY KEY (`id_grade`),
+  ADD KEY `fk_grade_contour` (`id_contour`),
+  ADD KEY `fk_grade_user` (`id_user`);
 
 --
 -- Index pour la table `organ`
@@ -130,6 +153,13 @@ ALTER TABLE `grade`
 ALTER TABLE `organ`
   ADD PRIMARY KEY (`id_organ`),
   ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Index pour la table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id_user`),
+  ADD UNIQUE KEY `password` (`password`);
 
 --
 -- AUTO_INCREMENT pour les tables déchargées
@@ -152,6 +182,29 @@ ALTER TABLE `grade`
 --
 ALTER TABLE `organ`
   MODIFY `id_organ` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT pour la table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Contraintes pour les tables déchargées
+--
+
+--
+-- Contraintes pour la table `contour`
+--
+ALTER TABLE `contour`
+  ADD CONSTRAINT `fk_contour_organ` FOREIGN KEY (`id_organ`) REFERENCES `organ` (`id_organ`);
+
+--
+-- Contraintes pour la table `grade`
+--
+ALTER TABLE `grade`
+  ADD CONSTRAINT `fk_grade_contour` FOREIGN KEY (`id_contour`) REFERENCES `contour` (`id_contour`),
+  ADD CONSTRAINT `fk_grade_user` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
