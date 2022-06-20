@@ -7,9 +7,6 @@
 -- Version du serveur : 10.4.24-MariaDB
 -- Version de PHP : 8.1.6
 
-DROP TABLE `login_information`.`contour`;
-DROP TABLE `login_information`.`organusersusers`;
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -30,7 +27,7 @@ SET time_zone = "+00:00";
 -- Structure de la table `contour`
 --
 
-CREATE TABLE `login_information`.`contour` (
+CREATE TABLE `contour` (
   `id_contour` int(10) NOT NULL,
   `path` varchar(100) NOT NULL,
   `scan_path` varchar(100) NOT NULL,
@@ -45,7 +42,7 @@ CREATE TABLE `login_information`.`contour` (
 -- Déchargement des données de la table `contour`
 --
 
-INSERT INTO `login_information`.`contour` (`id_contour`, `path`, `scan_path`, `is_handcrafted`, `ct_root`, `ct_first_item`, `ct_last_item`, `id_organ`) VALUES
+INSERT INTO `contour` (`id_contour`, `path`, `scan_path`, `is_handcrafted`, `ct_root`, `ct_first_item`, `ct_last_item`, `id_organ`) VALUES
 (1, './Dicom_Files/Contours/AnalCanal/Scan_4/1.dcm', './Dicom_Files/Scans/Scan_4/', 1, 'CT_1.2.840.113704.7.1.0.182231177252224.1648735459', 346, 378, 1),
 (2, './Dicom_Files/Contours/AnalCanal/Scan_4/2.dcm', './Dicom_Files/Scans/Scan_4/', 0, 'CT_1.2.840.113704.7.1.0.182231177252224.1648735459', 351, 371, 1),
 (3, './Dicom_Files/Contours/BoneIliumL/Scan_4/1.dcm', './Dicom_Files/Scans/Scan_4/', 1, 'CT_1.2.840.113704.7.1.0.182231177252224.1648735459', 150, 276, 2),
@@ -109,7 +106,7 @@ INSERT INTO `login_information`.`contour` (`id_contour`, `path`, `scan_path`, `i
 -- Structure de la table `organ`
 --
 
-CREATE TABLE `login_information`.`organ` (
+CREATE TABLE `organ` (
   `id_organ` int(10) NOT NULL,
   `name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -118,7 +115,7 @@ CREATE TABLE `login_information`.`organ` (
 -- Déchargement des données de la table `organ`
 --
 
-INSERT INTO `login_information`.`organ` (`id_organ`, `name`) VALUES
+INSERT INTO `organ` (`id_organ`, `name`) VALUES
 (1, 'AnalCanal'),
 (2, 'BoneIliumL'),
 (3, 'BoneIliumR'),
@@ -155,7 +152,7 @@ INSERT INTO `login_information`.`organ` (`id_organ`, `name`) VALUES
 --
 -- Index pour la table `contour`
 --
-ALTER TABLE `login_information`.`contour`
+ALTER TABLE `contour`
   ADD PRIMARY KEY (`id_contour`),
   ADD UNIQUE KEY `path` (`path`),
   ADD KEY `fk_contour_organ` (`id_organ`);
@@ -163,7 +160,7 @@ ALTER TABLE `login_information`.`contour`
 --
 -- Index pour la table `organ`
 --
-ALTER TABLE `login_information`.`organ`
+ALTER TABLE `organ`
   ADD PRIMARY KEY (`id_organ`),
   ADD UNIQUE KEY `name` (`name`);
 
@@ -174,13 +171,13 @@ ALTER TABLE `login_information`.`organ`
 --
 -- AUTO_INCREMENT pour la table `contour`
 --
-ALTER TABLE `login_information`.`contour`
+ALTER TABLE `contour`
   MODIFY `id_contour` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT pour la table `organ`
 --
-ALTER TABLE `login_information`.`organ`
+ALTER TABLE `organ`
   MODIFY `id_organ` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
@@ -190,7 +187,7 @@ ALTER TABLE `login_information`.`organ`
 --
 -- Contraintes pour la table `contour`
 --
-ALTER TABLE `login_information`.`contour`
+ALTER TABLE `contour`
   ADD CONSTRAINT `fk_contour_organ` FOREIGN KEY (`id_organ`) REFERENCES `organ` (`id_organ`);
 COMMIT;
 

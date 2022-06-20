@@ -12,17 +12,17 @@ const {encrypt, decrypt} = require('./encryptionHandler');
 app.use(cors());
 app.use(express.json());
 
-const db = mysql.createConnection({
-    user: 'root',
-    host: 'localhost',
-    password: '20002991',
-    database: 'login_information',
-});
+// const db = mysql.createConnection({
+//     user: 'root',
+//     host: 'localhost',
+//     password: '20002991',
+//     database: 'login_information',
+// });
 
 const config = {    //Parameters to connect to database. To change with the real parameters.
     host: 'localhost',
     user: 'root',
-    password: '20002991',
+    password: '',
     database: 'test2'
   };
   
@@ -94,6 +94,7 @@ const config = {    //Parameters to connect to database. To change with the real
   
   app.post('/unknown_frame',urlencodedParser,(req,res)=>{
     var nb = req.body.number;
+    console.log("gneu")
     const python = spawn('python', ['test.py',"tablesturned.JPG"]);
     python.stdout.on('data', function (data) {
       console.log('Pipe data from python script ...');
@@ -120,6 +121,7 @@ const config = {    //Parameters to connect to database. To change with the real
   });
 
 app.post('/register', (req, res) => {
+    db = initializeConnection(config);
     const { username, email, password } = req.body;
     const hashedPassword = encrypt(password);
 
@@ -151,7 +153,7 @@ app.post('/register', (req, res) => {
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-
+    db = initializeConnection(config);
     db.query("SELECT COUNT( * ) AS existingAccount FROM users WHERE username=?;", [username], function(err, rows, fields) {
         if (err) throw err;
         if (rows[0].existingAccount===0)

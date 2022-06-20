@@ -1,10 +1,12 @@
 import Axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as React from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import $ from 'jquery'; 
 import './Home.css';
+
+var frames = new Array(0);
 
 export default function Home() {
     
@@ -15,7 +17,14 @@ export default function Home() {
     const [showcv, setShowCv] = useState(false);
     const [showcv2, setShowCv2] = useState(false);
 
-    var frames = new Array(0);
+    useEffect(() => {    // Met à jour   
+        document.getElementById("images").className = showtitle;},[showtitle]);
+    useEffect(() => {    // Met à jour   
+        document.getElementById("canvas1").className = showcv;},[showcv]);
+    useEffect(() => {    // Met à jour   
+        document.getElementById("canvas2").className = showcv2;},[showcv2]);
+    
+
     var compt1 = 0;
     var compt2 = 0;
     var z1 = 1;
@@ -69,7 +78,7 @@ export default function Home() {
         string = string.substring(15);
         let pix_array = string.split(",");
         pix_array = new Uint8ClampedArray(pix_array);
-        console.log(pix_array)
+        //console.log(pix_array)
         var im = new ImageData(pix_array,height,width);
         frames.push(im);
         return im
@@ -110,7 +119,7 @@ export default function Home() {
         if(compt1 < frames.length){
             drawCanvas(zone1,frames[compt1],z1)
         }else{
-            $.post("/unknown_frame",
+            $.post("http://localhost:8080/unknown_frame",
                 {
                     number: compt1
                 },
@@ -130,7 +139,7 @@ export default function Home() {
         if(compt2 < frames.length){
             drawCanvas(zone1,frames[compt2],z2)
         }else{
-            $.post("/unknown_frame",
+            $.post("http://localhost:8080/unknown_frame",
                 {
                     number: compt2
                 },
@@ -151,13 +160,12 @@ export default function Home() {
         if(compt1 < frames.length){
             drawCanvas(zone1,frames[compt1],z1)
         }else{
-            $.post("/unknown_frame",
+            $.post("http://localhost:8080/unknown_frame",
                 {
                     number: compt1
                 },
                 function (data, status) {
                 console.log(status);
-                var zone1 = document.getElementById("cv1");
                 let im = parsingImageData(data);
                 drawCanvas(zone1,im,z1)
                 });
@@ -173,7 +181,7 @@ export default function Home() {
         if(compt2 < frames.length){
             drawCanvas(zone1,frames[compt2],z2)
         }else{
-            $.post("/unknown_frame",
+            $.post("http://localhost:8080/unknown_frame",
                 {
                     number: compt2
                 },
@@ -208,21 +216,21 @@ export default function Home() {
             </Button>
         </Form>
         <div id="images" className={!showtitle ? "instructions" : "offscreen"}>
-            <label id="title" for="images" value = {title} className={!showtitle ? "instructions" : "offscreen"}></label>
             <div id = "canvas1" className={!showcv ? "instructions" : "offscreen"}>
-                <Button id="previous1" onSubmit={previous1}>previous frame</Button>
-                <Button id="next1" onSubmit={next1}>next frame</Button>
-                <Button id="z+1" onSubmit={zoom1}>zoom +</Button>
-                <Button id="z-1" onSubmit={unzoom1}>zoom -</Button>
+                <Button id="previous1" onClick={previous1}>previous frame</Button>
+                <Button id="next1" onClick={next1}>next frame</Button>
+                <Button id="z+1" onClick={zoom1}>zoom +</Button>
+                <Button id="z-1" onClick={unzoom1}>zoom -</Button>
                 <canvas id="cv1" width="600" height="600"></canvas>
             </div>
             <div id = "canvas2" className={!showcv2 ? "instructions" : "offscreen"}>
-                <Button id="previous2" onSubmit={previous2}>previous frame</Button>
-                <Button id="next2" onSubmit={next2}>next frame</Button>
-                <Button id="z+1" onSubmit={zoom2}>zoom +</Button>
-                <Button id="z-1" onSubmit={unzoom2}>zoom -</Button>
+                <Button id="previous2" onClick={previous2}>previous frame</Button>
+                <Button id="next2" onClick={next2}>next frame</Button>
+                <Button id="z+1" onClick={zoom2}>zoom +</Button>
+                <Button id="z-1" onClick={unzoom2}>zoom -</Button>
                 <canvas id="cv2" width="600" height="600"></canvas>
             </div>
         </div>
+        <label id="title" htmlFor="images" value = {title} className={!showtitle ? "instructions" : "offscreen"}></label>
         </div>
 }
