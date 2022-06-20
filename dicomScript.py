@@ -49,7 +49,7 @@ def convert_global_aix_to_net_pos(data):
     return point_data
 
 dicomFolder = '.\Initial_Files\TESTS'
-destinationFolder = '.\DATABASE'
+destinationFolder = 'C:\DATABASE'
 
 scanList =  [dicomFolder + "\\" + s for s in os.listdir(dicomFolder)]
 
@@ -89,7 +89,7 @@ for scan in scanList:
             ctPathList = []
             for ContourSequence in ROIContourSequence.ContourSequence:
                 ctPathList.append(scan + '\\CT_' + ContourSequence.ContourImageSequence[0].ReferencedSOPInstanceUID + '.dcm')
-            print(ctPathList)
+            # print(ctPathList)
 
             dictDicomFiles = {"dcm_files" : ctPathList, "rt_file" : rtPath}
             roiNumber = ROIContourSequence.ReferencedROINumber - 1
@@ -126,5 +126,7 @@ for scan in scanList:
                 for structureSetROISequence in dsRT.StructureSetROISequence:
                         if structureSetROISequence.ROINumber == ROIContourSequence.ReferencedROINumber:
                             organName = structureSetROISequence.ROIName
-
-                plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+                try:
+                    plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+                except ValueError:
+                    print("ERREUR")
