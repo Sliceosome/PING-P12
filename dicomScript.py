@@ -128,5 +128,6 @@ for scan in scanList:
                             organName = structureSetROISequence.ROIName
                 try:
                     plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+                    plt.close()
                 except ValueError:
                     print("ERREUR")
