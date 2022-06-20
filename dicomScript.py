@@ -86,48 +86,51 @@ for scan in scanList:
                 os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC')
 
         for ROIContourSequence in dsRT.ROIContourSequence:
-            ctPathList = []
-            for ContourSequence in ROIContourSequence.ContourSequence:
-                ctPathList.append(scan + '\\CT_' + ContourSequence.ContourImageSequence[0].ReferencedSOPInstanceUID + '.dcm')
-            # print(ctPathList)
+            try:
+                ctPathList = []
+                for ContourSequence in ROIContourSequence.ContourSequence:
+                    ctPathList.append(scan + '\\CT_' + ContourSequence.ContourImageSequence[0].ReferencedSOPInstanceUID + '.dcm')
+                # print(ctPathList)
 
-            dictDicomFiles = {"dcm_files" : ctPathList, "rt_file" : rtPath}
-            roiNumber = ROIContourSequence.ReferencedROINumber - 1
-            data = load_data(dictDicomFiles, roiNumber)
-            dataPoint = convert_global_aix_to_net_pos(data)
+                dictDicomFiles = {"dcm_files" : ctPathList, "rt_file" : rtPath}
+                roiNumber = ROIContourSequence.ReferencedROINumber - 1
+                data = load_data(dictDicomFiles, roiNumber)
+                dataPoint = convert_global_aix_to_net_pos(data)
 
-            for key in dataPoint.keys():
-                listDataPoint = list(dataPoint[key])
+                for key in dataPoint.keys():
+                    listDataPoint = list(dataPoint[key])
 
-                imgRGB = np.zeros([512, 512, 3], dtype=np.uint8)
+                    imgRGB = np.zeros([512, 512, 3], dtype=np.uint8)
 
-                ctFile = scan + '\\CT_' + key + '.dcm'
-                ds = dcmread(ctFile)
-                img = ds.pixel_array
-                imgRGB[:,:,0] = (img + 300) / 10
-                imgRGB[:,:,1] = (img + 300) / 10
-                imgRGB[:,:,2] = (img + 300) / 10
+                    ctFile = scan + '\\CT_' + key + '.dcm'
+                    ds = dcmread(ctFile)
+                    img = ds.pixel_array
+                    imgRGB[:,:,0] = (img + 300) / 10
+                    imgRGB[:,:,1] = (img + 300) / 10
+                    imgRGB[:,:,2] = (img + 300) / 10
 
-                R = 255
-                G = 0
-                B = 255
+                    R = 255
+                    G = 0
+                    B = 255
 
-                for point in listDataPoint:
-                    x = point[1]
-                    y = point[0]
-                    imgRGB[x][y][0] = R
-                    imgRGB[x][y][1] = G
-                    imgRGB[x][y][2] = B
+                    for point in listDataPoint:
+                        x = point[1]
+                        y = point[0]
+                        imgRGB[x][y][0] = R
+                        imgRGB[x][y][1] = G
+                        imgRGB[x][y][2] = B
 
-                plt.imshow(imgRGB)
-                plt.axis('off')
+                    plt.imshow(imgRGB)
+                    plt.axis('off')
 
-                organName = ''
-                for structureSetROISequence in dsRT.StructureSetROISequence:
-                        if structureSetROISequence.ROINumber == ROIContourSequence.ReferencedROINumber:
-                            organName = structureSetROISequence.ROIName
-                try:
-                    plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
-                    plt.close()
-                except ValueError:
-                    print("ERREUR")
+                    organName = ''
+                    for structureSetROISequence in dsRT.StructureSetROISequence:
+                            if structureSetROISequence.ROINumber == ROIContourSequence.ReferencedROINumber:
+                                organName = structureSetROISequence.ROIName
+                    try:
+                        plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+                        plt.close()
+                    except:
+                        print("ERROR 1")
+            except:
+                print("ERROR 2")
