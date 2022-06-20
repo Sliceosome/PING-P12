@@ -4,15 +4,15 @@ import pydicom as pd
 from pydicom import dcmread
 
 try:
-    ## Database connection ##
+    # Database connection
     connector = mc.connect(host = 'localhost', database = 'contour_evaluation', user = 'root', password = '')
     cursor = connector.cursor()
 
-    ## Folders ##
-    contoursFolder = './Dicom_Files/Contours/'
-    scansFolder = './Dicom_Files/Scans/'
+    # Folders
+    contoursFolder = './DATABASE/'
+    # scansFolder = './Dicom_Files/Scans/'
 
-    ## Fill "organ" table ##
+    # Fill "organ" table
     organList = os.listdir(contoursFolder)
 
     # INSERT Request
@@ -21,8 +21,7 @@ try:
         cursor.execute(request)
 
 
-    ## Fill "contour" table ##
-    organList = os.listdir(contoursFolder)
+    # Fill "contour" table
 
     # Create dictionnary in order to fill id_organ
     request = "SELECT `id_organ` FROM organ"
@@ -36,12 +35,12 @@ try:
     # print(nameList)
 
     dictOrgan = dict(zip(nameList, idOrganList))
-    # print(dictOrgan)
+    print(dictOrgan)
 
     # Define a dictionnary in order to fill is_handcrafted
-    # 1 : handcrafted
     # 0 : AI
-    dictHandcrafted = {"Limbus AI Inc.": "0", "TheraPanacea": "1"}
+    # 1 : handcrafted
+    dictHandcrafted = {"LimbusAIInc": "0", "TheraPanacea": "1"}
 
     # INSERT Request
     for organ in organList:
@@ -50,24 +49,17 @@ try:
 
         for scan in scanList:
 
-            rtStructList = os.listdir(contoursFolder + organ + '/' + scan + '/')
+            rtList = os.listdir(contoursFolder + organ + '/' + scan + '/')
 
-            for rtStruct in rtStructList:
-
-                # Build paths
-                contourPath = contoursFolder + organ + '/' + scan + '/' + rtStruct
-                contourScanPath = scansFolder + scan + '/'
-
-                # Take information in RT_Struct
-                ds = dcmread(contourPath)
-                isHandCrafted = dictHandcrafted[ds.Manufacturer]
-                ctName = "CT_" + ds.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].ReferencedSOPInstanceUID[:-2]
-                ctFirstItem = ds.ROIContourSequence[0].ContourSequence[-1].ContourImageSequence[0].ReferencedSOPInstanceUID.rsplit('.')[-1]
-                ctLastItem = ds.ROIContourSequence[0].ContourSequence[0].ContourImageSequence[0].ReferencedSOPInstanceUID.rsplit('.')[-1]
+            for rt in rtList:
+                
+                contourPath = contoursFolder + organ + '/' + scan + '/' + rt
+                isHandCrafted = dictHandcrafted[rt]
 
                 # INSERT Request
-                request = "INSERT INTO `contour` (`path`, `scan_path`, `id_organ`, `is_handcrafted`, `ct_root`, `ct_first_item`, `ct_last_item`) VALUES ('" + contourPath + "', '" + contourScanPath + "', '" + str(dictOrgan[organ]) + "', '" + isHandCrafted + "', '" + ctName + "', '" + ctFirstItem + "', '" + ctLastItem + "')"
+                request = "INSERT INTO `contour` (`folder_path`, `is_handcrafted`, `id_organ`) VALUES ('" + contourPath + "', '" + isHandCrafted + "', '" + str(dictOrgan[organ]) + "')"
                 cursor.execute(request)
+
 
     # Apply changes
     connector.commit()
