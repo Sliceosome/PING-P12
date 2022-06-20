@@ -10,7 +10,6 @@ try:
 
     # Folders
     contoursFolder = './DATABASE/'
-    # scansFolder = './Dicom_Files/Scans/'
 
     # Fill "organ" table
     organList = os.listdir(contoursFolder)
@@ -35,7 +34,7 @@ try:
     # print(nameList)
 
     dictOrgan = dict(zip(nameList, idOrganList))
-    print(dictOrgan)
+    # print(dictOrgan)
 
     # Define a dictionnary in order to fill is_handcrafted
     # 0 : AI

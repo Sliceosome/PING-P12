@@ -1,3 +1,10 @@
 ALTER TABLE contour ADD CONSTRAINT fk_contour_organ FOREIGN KEY(id_organ) REFERENCES organ(id_organ)
 ALTER TABLE contour DROP CONSTRAINT fk_contour_organ
+
+ALTER TABLE contour ADD CONSTRAINT fk_grade_contour FOREIGN KEY(id_contour) REFERENCES contour(id_contour)
+ALTER TABLE contour DROP CONSTRAINT fk_grade_contour
+
+ALTER TABLE contour ADD CONSTRAINT fk_grade_user FOREIGN KEY(id_user) REFERENCES grade(id_user)
+ALTER TABLE contour DROP CONSTRAINT fk_grade_user
+
 DROP DATABASE contour_evaluation
