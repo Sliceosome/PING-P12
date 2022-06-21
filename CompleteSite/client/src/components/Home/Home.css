@@ -14,3 +14,23 @@ button {
     align-content:flex-start;
     margin-top: 0%;
   }
+
+#grade{
+    width: 400px;
+}
+
+#display {
+    overflow:auto;
+ }
+ #canvas1 {
+    float:left;
+    vertical-align: top;
+ }
+ #canvas2 {
+    overflow:auto;
+    margin-left: 60%;
+    vertical-align: top;
+ }
+ #marks {
+    text-align: center;
+ }

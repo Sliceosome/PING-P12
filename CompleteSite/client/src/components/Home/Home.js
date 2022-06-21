@@ -7,10 +7,13 @@ import $ from 'jquery';
 import './Home.css';
 
 var frames = new Array(0);
+var frames2 = new Array(0);
+
 
 export default function Home() {
     
     const [title, setTitle] = useState('');
+    const [grade, setGrade] = useState('');
     const [outline, setOutline] = useState('');
     const [compare, setCompare] = useState(false);
     const [showtitle, setShowTitle] = useState(false);
@@ -26,9 +29,7 @@ export default function Home() {
     
 
     var compt1 = 0;
-    var compt2 = 0;
     var z1 = 1;
-    var z2 = 1;
 
     const search = async e => {
         e.preventDefault();
@@ -40,14 +41,13 @@ export default function Home() {
                 outline: outline
             });
             console.log(response.status);
-            //let im="data:image/jpg;charset=utf-8;base64, "+ response.data;
             setTitle('Outline : '+ outline);
             var zone1 = document.getElementById("cv1");
             let im = parsingImageData(response.data);
             drawCanvas(zone1,im,z1)
             if(compare){
                 var zone2 = document.getElementById("cv2");
-                drawCanvas(zone2,im,z2)
+                drawCanvas(zone2,frames2[0],z1)
                 setShowCv2(true);
             }
             setShowTitle(true);
@@ -76,85 +76,78 @@ export default function Home() {
     }
 
     function parsingImageData(string){
-        let ima="data:image/jpg;charset=utf-8;base64, "+ string;
+        console.log(string)
+        if(string != "Out of bounds"){
+            let im = string.split("end1")
+            let ima="data:image/jpg;charset=utf-8;base64, "+ im[0];
+            let ima2 = "";
+            if(im[1] != ""){
+                ima2 = "data:image/jpg;charset=utf-8;base64, "+ im[1];
+                frames2.push(ima2);
+                console.log(frames2.length)
+            }
 
-        // let width = string[1]+string[2]+string[3]
-        // width = parseInt(width);
-        // let height = string[6]+string[7]+string[8]
-        // height = parseInt(height);
-        // string = string.substring(15);
-        // let pix_array = string.split(",");
-        // pix_array = new Uint8ClampedArray(pix_array);
-        // //console.log(pix_array)
-        // var im = new ImageData(pix_array,height,width);
-        frames.push(ima);
-        return ima
+            // let width = string[1]+string[2]+string[3]
+            // width = parseInt(width);
+            // let height = string[6]+string[7]+string[8]
+            // height = parseInt(height);
+            // string = string.substring(15);
+            // let pix_array = string.split(",");
+            // pix_array = new Uint8ClampedArray(pix_array);
+            // //console.log(pix_array)
+            // var im = new ImageData(pix_array,height,width);
+            frames.push(ima);
+            return ima
+        }else{console.log(string)}
     }
 
     const zoom1 = () => {
         z1+=0.25;
-        var zone = document.getElementById("cv1");
-        drawCanvas(zone,frames[compt1],z1);
+        var zone1 = document.getElementById("cv1");
+        drawCanvas(zone1,frames[compt1],z1);
+        if(compare){
+            var zone2 = document.getElementById("cv2");
+            drawCanvas(zone2,frames2[compt1],z1);
+        }
     }
 
     const unzoom1 = () => {
         if(z1>1){
             z1-=0.25;
         }
-        var zone = document.getElementById("cv1");
-        drawCanvas(zone,frames[compt1],z1);
-    }
-
-    const zoom2 = () => {
-        z2+=0.25;
-        var zone = document.getElementById("cv2");
-        drawCanvas(zone,frames[compt2],z2);
-    }
-
-    const unzoom2 = () => {
-        if(z2>1){
-            z2-=0.25;
+        var zone1 = document.getElementById("cv1");
+        drawCanvas(zone1,frames[compt1],z1);
+        if(compare){
+            var zone2 = document.getElementById("cv2");
+            drawCanvas(zone2,frames2[compt1],z1);
         }
-        var zone = document.getElementById("cv2");
-        drawCanvas(zone,frames[compt2],z2);
     }
 
     const next1 = () => {
         compt1++;
         z1=1;
         var zone1 = document.getElementById("cv1");
-        if(compt1 < frames.length){
+        var zone2 = document.getElementById("cv2");
+        if(!compare && compt1 < frames.length){
             drawCanvas(zone1,frames[compt1],z1)
+        }else if(compare && compt1 < Math.max(frames.length, frames2.length)){
+            drawCanvas(zone1,frames[compt1],z1)
+            drawCanvas(zone2,frames2[compt1],z1)
         }else{
             $.post("http://localhost:8080/unknown_frame",
-                {
-                    number: compt1
-                },
-                function (data, status) {
-                console.log(status);
-                var zone1 = document.getElementById("cv1");
-                let im = parsingImageData(data);
-                drawCanvas(zone1,im,z1)
-                });
-        }
-    }
-
-    const next2 = () => {
-        compt2++;
-        z2=1;
-        var zone1 = document.getElementById("cv2");
-        if(compt2 < frames.length){
-            drawCanvas(zone1,frames[compt2],z2)
-        }else{
-            $.post("http://localhost:8080/unknown_frame",
-                {
-                    number: compt2
-                },
-                function (data, status) {
-                console.log(status);
-                let im = parsingImageData(data);
-                drawCanvas(zone1,im,z2)
-                });
+            {
+                number: compt1,
+                two: compare,
+            },
+            function (data, status) {
+            console.log(status);
+            let im = parsingImageData(data);
+            drawCanvas(zone1,frames[compt1],z1);
+            //console.log("frames2 : " + frames2.length)
+            if(compare){
+                drawCanvas(zone2,frames2[compt1],z1);
+            }
+            });
         }
     }
 
@@ -164,40 +157,39 @@ export default function Home() {
         }
         z1=1;
         var zone1 = document.getElementById("cv1");
-        if(compt1 < frames.length){
+        var zone2 = document.getElementById("cv2");
+        if(!compare && compt1 < frames.length){
             drawCanvas(zone1,frames[compt1],z1)
+        }else if(compare && compt1 < Math.max(frames.length, frames2.length)){
+            drawCanvas(zone1,frames[compt1],z1)
+            drawCanvas(zone2,frames2[compt1],z1)
         }else{
             $.post("http://localhost:8080/unknown_frame",
-                {
-                    number: compt1
-                },
-                function (data, status) {
-                console.log(status);
-                let im = parsingImageData(data);
-                drawCanvas(zone1,im,z1)
-                });
+            {
+                number: compt1,
+                two: compare,
+            },
+            function (data, status) {
+            console.log(status);
+            parsingImageData(data);
+            drawCanvas(zone1,frames[compt1],z1);
+            console.log(compare)
+            if(!compare){
+                drawCanvas(zone2,frames2[compt1],z1);
+            }
+            });
         }
     }
 
-    const previous2 = () => {
-        if(compt2 > 0){
-            compt2--;
-        }
-        z2=1;
-        var zone1 = document.getElementById("cv2");
-        if(compt2 < frames.length){
-            drawCanvas(zone1,frames[compt2],z2)
-        }else{
-            $.post("http://localhost:8080/unknown_frame",
-                {
-                    number: compt2
-                },
-                function (data, status) {
-                console.log(status);
-                let im = parsingImageData(data);
-                drawCanvas(zone1,im,z2)
-                });
-        }
+    const graded = () => {  //TODO
+        var note = document.getElementById("notation").value;
+        $.post("http://localhost:8080/graded",
+            {
+                value: note
+            },
+            function (data, status) {
+            console.log(status);
+            });
     }
 
     return <div>
@@ -223,21 +215,32 @@ export default function Home() {
             </Button>
         </Form>
         <div id="images" className={!showtitle ? "instructions" : "offscreen"}>
-            <div id = "canvas1" className={!showcv ? "instructions" : "offscreen"}>
-                <Button id="previous1" onClick={previous1}>previous frame</Button>
-                <Button id="next1" onClick={next1}>next frame</Button>
-                <Button id="z+1" onClick={zoom1}>zoom +</Button>
-                <Button id="z-1" onClick={unzoom1}>zoom -</Button>
-                <canvas id="cv1" width="600" height="600"></canvas>
-            </div>
-            <div id = "canvas2" className={!showcv2 ? "instructions" : "offscreen"}>
-                <Button id="previous2" onClick={previous2}>previous frame</Button>
-                <Button id="next2" onClick={next2}>next frame</Button>
-                <Button id="z+1" onClick={zoom2}>zoom +</Button>
-                <Button id="z-1" onClick={unzoom2}>zoom -</Button>
-                <canvas id="cv2" width="600" height="600"></canvas>
+            <Button id="previous1" onClick={previous1}>previous frame</Button>
+            <Button id="next1" onClick={next1}>next frame</Button>
+            <Button id="z+1" onClick={zoom1}>zoom +</Button>
+            <Button id="z-1" onClick={unzoom1}>zoom -</Button>
+            <div id="display">
+                <div id = "canvas1" className={!showcv ? "instructions" : "offscreen"}>
+                    <canvas id="cv1" width="600" height="600"></canvas>
+                </div>
+                <div id = "canvas2" className={!showcv2 ? "instructions" : "offscreen"}>
+                    <canvas id="cv2" width="600" height="600"></canvas>
+                </div>
             </div>
         </div>
+            <div id="marks">
+            {showtitle ? (
+            <Form.Control
+                type="text"
+                id="notation"
+                required size="25"
+                value={grade}
+                placeholder = {compare ? "Left or Right for whichever outline is the better" : "Grade the outline on 4 points"}
+                onChange={(e) => setGrade(e.target.value)}
+            />) : null}
+             {showtitle ? (
+             <Button id="sendGrade" onClick={graded}>Submit Grade</Button>) : null}
+             </div>
         <label id="title" htmlFor="images" value = {title} className={!showtitle ? "instructions" : "offscreen"}></label>
         </div>
 }

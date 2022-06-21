@@ -61,12 +61,12 @@ const config = {    //Parameters to connect to database. To change with the real
   var urlencodedParser = bodyParser.urlencoded({ extended: false })
   var path1 = "";
   var path2 = "";
-  var files = "";
+  var files1 = "";
+  var files2 = "";
+  let imgStr2 = "";
   
   app.post('/request',urlencodedParser, async (req,res)=>{
     const connection2 = await initializeConnection(config);
-
-    console.log(req.body)
     let [rows,fields] = await connection2.execute('SELECT organ.name, contour.folder_path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ? order by rand()',[req.body.outline])
     console.log('The solution is: ', rows[0].folder_path);
     path1 = rows[0].folder_path;
@@ -97,14 +97,21 @@ const config = {    //Parameters to connect to database. To change with the real
     // let imgStr =  fs.readFileSync(path.join(path1,files[0]),"base64");
     // res.send(imgStr)
     // });
-    files = fs.readdirSync(path1)
-    let imgStr =  fs.readFileSync(path.join(path1,files[0]),"base64");
-    res.send(imgStr)
+    files1 = fs.readdirSync(path1)
+    let imgStr1 =  fs.readFileSync(path.join(path1,files1[0]),"base64");
+
+    if(req.body.two){
+        files2 = fs.readdirSync(path2)  
+        imgStr2 =  fs.readFileSync(path.join(path2,files2[0]),"base64");
+    }  
+
+    res.send(imgStr1 + "end1" + imgStr2)
   });
   
   app.post('/unknown_frame',urlencodedParser,(req,res)=>{
     var nb = req.body.number;
-    // console.log("gneu")
+    let imgStr2 = ""
+    var isTrueSet = (req.body.two === 'true');
     // const python = spawn('python', ['test.py',"tablesturned.JPG"]);
     // python.stdout.on('data', function (data) {
     //   console.log('Pipe data from python script ...');
@@ -118,10 +125,21 @@ const config = {    //Parameters to connect to database. To change with the real
     //  let jsonData = require('./outline.json');
     //  console.log(dataToSend);
     //  dataToSend = dataToSend + jsonData
-     let imgStr =  fs.readFileSync(path.join(path1,files[nb]),"base64");
-     res.send(imgStr)
-     });
+    if(nb < Math.max(files1.length,files2.length)){
+        if(isTrueSet){
+            imgStr2 =  fs.readFileSync(path.join(path2,files2[nb]),"base64");
+        }
+        let imgStr =  fs.readFileSync(path.join(path1,files1[nb]),"base64");
+        res.send(imgStr + "end1" + imgStr2)
+    }else{res.send("Out of bounds")}
+    });
     //});
+    
+  app.post('/graded',urlencodedParser,(req,res)=>{
+    let mark = req.body.value;
+    console.log("grade = " + mark);
+  })
+
   
   app.use(function(request, response, next) {
     response.header("Access-Control-Allow-Origin", '*');
