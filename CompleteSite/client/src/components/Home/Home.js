@@ -40,6 +40,7 @@ export default function Home() {
                 outline: outline
             });
             console.log(response.status);
+            //let im="data:image/jpg;charset=utf-8;base64, "+ response.data;
             setTitle('Outline : '+ outline);
             var zone1 = document.getElementById("cv1");
             let im = parsingImageData(response.data);
@@ -51,7 +52,6 @@ export default function Home() {
             }
             setShowTitle(true);
             setShowCv(true);
-            console.log(response.data);
         }
         catch (e) {
             console.log('Error '+e);
@@ -63,7 +63,12 @@ export default function Home() {
         var context = canvas.getContext("2d");
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-        context.putImageData(im, 0, 0,0,0,600,600);
+        //context.putImageData(im, 0, 0,0,0,600,600);
+        var image = new Image();
+        image.src = im
+        image.onload = function() {
+            context.drawImage(image, 0, 0);
+        };
         if(scale !==1){
             context.scale(scale,scale);
             context.drawImage(canvas, 0, 0)
@@ -71,17 +76,19 @@ export default function Home() {
     }
 
     function parsingImageData(string){
-        let width = string[1]+string[2]+string[3]
-        width = parseInt(width);
-        let height = string[6]+string[7]+string[8]
-        height = parseInt(height);
-        string = string.substring(15);
-        let pix_array = string.split(",");
-        pix_array = new Uint8ClampedArray(pix_array);
-        //console.log(pix_array)
-        var im = new ImageData(pix_array,height,width);
-        frames.push(im);
-        return im
+        let ima="data:image/jpg;charset=utf-8;base64, "+ string;
+
+        // let width = string[1]+string[2]+string[3]
+        // width = parseInt(width);
+        // let height = string[6]+string[7]+string[8]
+        // height = parseInt(height);
+        // string = string.substring(15);
+        // let pix_array = string.split(",");
+        // pix_array = new Uint8ClampedArray(pix_array);
+        // //console.log(pix_array)
+        // var im = new ImageData(pix_array,height,width);
+        frames.push(ima);
+        return ima
     }
 
     const zoom1 = () => {
@@ -99,7 +106,7 @@ export default function Home() {
     }
 
     const zoom2 = () => {
-        z1+=0.25;
+        z2+=0.25;
         var zone = document.getElementById("cv2");
         drawCanvas(zone,frames[compt2],z2);
     }

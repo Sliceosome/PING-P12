@@ -4,8 +4,9 @@ const {spawn} = require('child_process');
 const express = require('express');
 var bodyParser = require('body-parser')
 const app = express();
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
+const fs = require('fs')
 const PORT = 8080;
 
 const {encrypt, decrypt} = require('./encryptionHandler');
@@ -29,22 +30,26 @@ const config = {    //Parameters to connect to database. To change with the real
   var connection = null;
   app.use(express.static(path.join(__dirname,'public')));
 
-  function initializeConnection(config) {
+  async function initializeConnection(config) {
     function addDisconnectHandler(connection) {
-        connection.on("error", function (error) {
-            if (error instanceof Error) {
-                if (error.code === "PROTOCOL_CONNECTION_LOST") {
-                    console.error(error.stack);
-                    console.log("Lost connection. Reconnecting...");
-                    initializeConnection(connection.config);
-                } else if (error.fatal) {
-                    throw error;
+        connection.connect(function(error) {              // The server is either down
+            if(error) {                                     // or restarting (takes a while sometimes).
+                console.log('error when connecting to db:', error);
+                setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
+                if (error instanceof Error) {
+                    if (error.code === "PROTOCOL_CONNECTION_LOST") {
+                        console.error(error.stack);
+                        console.log("Lost connection. Reconnecting...");
+                        initializeConnection(connection.config);
+                    } else if (error.fatal) {
+                        throw error;
+                    }
                 }
-            }
-        });
+            }                                     // to avoid a hot loop, and to allow our node script to
+          });
     }
   
-    connection = mysql.createConnection(config);
+    connection = await mysql.createConnection(config);
   
     // Add handlers.
     addDisconnectHandler(connection);
@@ -56,61 +61,67 @@ const config = {    //Parameters to connect to database. To change with the real
   var urlencodedParser = bodyParser.urlencoded({ extended: false })
   var path1 = "";
   var path2 = "";
+  var files = "";
   
-  app.post('/request',urlencodedParser,(req,res)=>{
-    connection = initializeConnection(config);
+  app.post('/request',urlencodedParser, async (req,res)=>{
+    const connection2 = await initializeConnection(config);
+
     console.log(req.body)
-    connection.query('SELECT organ.name, contour.path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ? order by rand()',[req.body.outline], (err, rows, fields) => {
-    //  connection.query('SELECT * from countries', (err, rows, fields) => {
-  
-      if(err){throw err;}
-      else{
-      console.log('The solution is: ', rows[0].path);
-       path1 = rows[0].path;
-        if(req.body.two){
-           path2 = rows[1].path
-        }
-      //res.send(rows[0].COUNTRY_NAME);}
-      }
-      connection.end();
-    })
-    var dataToSend;
-    // spawn new child process to call the python script
-    const python = spawn('python', ['test.py',"moi.PNG"]);
-    // collect data from script
-    python.stdout.on('data', function (data) {
-     console.log('Pipe data from python script ...');
-     dataToSend = data.toString();
-    });
-    // in close event we are sure that stream from child process is closed
-    python.on('close', (code) => {
-    console.log(`child process close all stdio with code ${code}`);
-    // send data to browser
-    let jsonData = require('./outline.json'); 
-    dataToSend = dataToSend + jsonData
-    res.send(dataToSend)
-    });
+    let [rows,fields] = await connection2.execute('SELECT organ.name, contour.folder_path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ? order by rand()',[req.body.outline])
+    console.log('The solution is: ', rows[0].folder_path);
+    path1 = rows[0].folder_path;
+    path1 = path1 + "/CLASSIC"
+    if(req.body.two){
+        path2 = rows[1].folder_path + "/CLASSIC"
+    }
+    connection2.end();
+    console.log("path 2 : " + path2)
+    console.log("path 1 : " + path1)
+    // var dataToSend;
+    // // spawn new child process to call the python script
+    // const python = spawn('python', ['test.py',"moi.PNG"]);
+    // // collect data from script
+    // python.stdout.on('data', function (data) {
+    //  console.log('Pipe data from python script ...');
+    //  dataToSend = data.toString();
+    // });
+    // // in close event we are sure that stream from child process is closed
+    // python.on('close', (code) => {
+    // console.log(`child process close all stdio with code ${code}`);
+    // // send data to browser
+    // let jsonData = require('./outline.json'); 
+    // dataToSend = dataToSend + jsonData
+    // //res.send(dataToSend)
+    // files = fs.readdirSync(path1)
+    // console.log(path.join(path1,files[0]));
+    // let imgStr =  fs.readFileSync(path.join(path1,files[0]),"base64");
+    // res.send(imgStr)
+    // });
+    files = fs.readdirSync(path1)
+    let imgStr =  fs.readFileSync(path.join(path1,files[0]),"base64");
+    res.send(imgStr)
   });
   
   app.post('/unknown_frame',urlencodedParser,(req,res)=>{
     var nb = req.body.number;
-    console.log("gneu")
-    const python = spawn('python', ['test.py',"tablesturned.JPG"]);
-    python.stdout.on('data', function (data) {
-      console.log('Pipe data from python script ...');
-      dataToSend = data.toString();
+    // console.log("gneu")
+    // const python = spawn('python', ['test.py',"tablesturned.JPG"]);
+    // python.stdout.on('data', function (data) {
+    //   console.log('Pipe data from python script ...');
+    //   dataToSend = data.toString();
+    //  });
+    //  // in close event we are sure that stream from child process is closed
+    //  python.on('close', (code) => {
+    //  console.log(`child process close all stdio with code ${code}`);
+    //  // send data to browser
+    //  delete require.cache[require.resolve('./outline.json')]
+    //  let jsonData = require('./outline.json');
+    //  console.log(dataToSend);
+    //  dataToSend = dataToSend + jsonData
+     let imgStr =  fs.readFileSync(path.join(path1,files[nb]),"base64");
+     res.send(imgStr)
      });
-     // in close event we are sure that stream from child process is closed
-     python.on('close', (code) => {
-     console.log(`child process close all stdio with code ${code}`);
-     // send data to browser
-     delete require.cache[require.resolve('./outline.json')]
-     let jsonData = require('./outline.json');
-     console.log(dataToSend);
-     dataToSend = dataToSend + jsonData
-     res.send(dataToSend)
-     });
-  });
+    //});
   
   app.use(function(request, response, next) {
     response.header("Access-Control-Allow-Origin", '*');
