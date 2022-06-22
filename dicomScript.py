@@ -13,7 +13,7 @@ dicomFolder = '.\Initial_Files\TESTS'
 # Path of DATABASE
 destinationFolder = 'C:\DATABASE'
 # Enable : True | Disable : False the parameters  window and level
-activateWindowLevel = False
+activateWindowLevel = True
 window = 1500
 level = -600
 # PNG folder's name
@@ -111,8 +111,8 @@ for scan in scanList:
                 os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder)
             if not os.path.isdir(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder):  
                 os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder)
-            if not os.path.isdir(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC'):  
-                os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC')
+            if not os.path.isdir(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\' + folderJPGName):  
+                os.makedirs(destinationFolder + '\\' + structureSetROISequence.ROIName + '\\' + scanFolder + '\\' + rtFolder + '\\' + folderJPGName)
 
         for ROIContourSequence in dsRT.ROIContourSequence:
             try:
