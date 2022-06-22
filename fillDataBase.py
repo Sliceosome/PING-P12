@@ -56,7 +56,7 @@ try:
                 isHandCrafted = dictHandcrafted[rt]
 
                 # INSERT Request
-                request = "INSERT INTO `contour` (`folder_path`, `is_handcrafted`, `id_organ`) VALUES ('" + contourPath + "', '" + isHandCrafted + "', '" + str(dictOrgan[organ]) + "')"
+                request = "INSERT INTO `contour` (`folder_path`, `is_handcrafted`, `manufacturer_name`, `id_organ`) VALUES ('" + contourPath + "', '" + isHandCrafted + "', '" + rt + "', '" + str(dictOrgan[organ]) + "')"
                 cursor.execute(request)
 
 
