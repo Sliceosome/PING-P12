@@ -48,8 +48,29 @@ def convert_global_aix_to_net_pos(data):
         point_data[uid] = point
     return point_data
 
+def setDicomWinWidthWinCenter(img_data, winwidth, wincenter, rows, cols):
+    img_temp = img_data
+    img_temp.flags.writeable = True
+    min = (2 * wincenter - winwidth) / 2.0 + 0.5
+    max = (2 * wincenter + winwidth) / 2.0 + 0.5
+    dFactor = 255.0 / (max - min)
+
+    for i in np.arange(rows):
+        for j in np.arange(cols):
+            img_temp[i, j] = int((img_temp[i, j]-min)*dFactor)
+
+    min_index = img_temp < 0
+    img_temp[min_index] = 0
+    max_index = img_temp > 255
+    img_temp[max_index] = 255
+
+    return img_temp
+
 dicomFolder = '.\Initial_Files\TESTS'
 destinationFolder = 'C:\DATABASE'
+window = 1500
+level = -600
+folderJPGName = 'classic'
 
 scanList =  [dicomFolder + "\\" + s for s in os.listdir(dicomFolder)]
 
@@ -98,29 +119,39 @@ for scan in scanList:
                 dataPoint = convert_global_aix_to_net_pos(data)
 
                 for key in dataPoint.keys():
-                    listDataPoint = list(dataPoint[key])
 
-                    imgRGB = np.zeros([512, 512, 3], dtype=np.uint8)
+                    listDataPoint = list(dataPoint[key])
+                    listDataPointShift = listDataPoint[-1:] + listDataPoint[:-1]
+
+                    A = []
+                    B = []
+                    i = 0
+                    while i < len(listDataPoint):
+                        tempA = []
+                        tempB = []
+                        tempA.append(listDataPoint[i][0])
+                        tempA.append(listDataPointShift[i][0])
+                        tempB.append(listDataPoint[i][1])
+                        tempB.append(listDataPointShift[i][1])
+                        A.append(tempA)
+                        B.append(tempB)
+                        i = i + 1
+                    
+                    # with open("output.txt", "w") as f:
+                    #     print(listDataPoint, file=f)
 
                     ctFile = scan + '\\CT_' + key + '.dcm'
                     ds = dcmread(ctFile)
-                    img = ds.pixel_array
-                    imgRGB[:,:,0] = (img + 300) / 10
-                    imgRGB[:,:,1] = (img + 300) / 10
-                    imgRGB[:,:,2] = (img + 300) / 10
+                    img = ds.pixel_array * ds.RescaleSlope + ds.RescaleIntercept
 
-                    R = 255
-                    G = 0
-                    B = 255
+                    image = setDicomWinWidthWinCenter(img, window, level, len(img), len(img))
 
-                    for point in listDataPoint:
-                        x = point[1]
-                        y = point[0]
-                        imgRGB[x][y][0] = R
-                        imgRGB[x][y][1] = G
-                        imgRGB[x][y][2] = B
+                    j = 0
+                    while j < len(A):
+                        plt.plot(A[j], B[j], color="magenta", linewidth=0.3)
+                        j = j + 1
 
-                    plt.imshow(imgRGB)
+                    plt.imshow(image, 'gray')
                     plt.axis('off')
 
                     organName = ''
@@ -128,7 +159,7 @@ for scan in scanList:
                             if structureSetROISequence.ROINumber == ROIContourSequence.ReferencedROINumber:
                                 organName = structureSetROISequence.ROIName
                     try:
-                        plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\CLASSIC\\' + str(key).replace('.',"_") + '.jpg' ,bbox_inches='tight', pad_inches=0, dpi=138.7)
+                        plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\' + folderJPGName + '\\' + str(key).replace('.',"_") + '.jpg', bbox_inches='tight', pad_inches=0, dpi=138.7)
                         plt.close()
                     except:
                         print("ERROR 1")
