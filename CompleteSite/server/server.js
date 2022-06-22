@@ -58,21 +58,22 @@ const config = {    //Parameters to connect to database. To change with the real
   
   var urlencodedParser = bodyParser.urlencoded({ extended: false })
   var path1 = "";
-  var id1 = ""
+  var id1 = "";
+  var id2 = "";
   var path2 = "";
   var files1 = "";
   var files2 = "";
-  let imgStr2 = "";
+  var imgStr2 = "";
   
   app.post('/request',urlencodedParser, async (req,res)=>{
     const connection2 = await initializeConnection(config);
-    let [rows,fields] = await connection2.execute('SELECT organ.name, organ.id_organ, contour.folder_path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ? order by rand()',[req.body.outline])
-    console.log('The solution is: ', rows[0].folder_path);
+    let [rows,fields] = await connection2.execute('SELECT organ.name, contour.id_contour, contour.folder_path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ? order by rand()',[req.body.outline])
     path1 = rows[0].folder_path;
-    id1 = rows[0].id;
+    id1 = rows[0].id_contour;
     path1 = path1 + "/CLASSIC"
     if(req.body.two){
         path2 = rows[1].folder_path + "/CLASSIC"
+        id2 = rows[1].id_contour;
     }
     connection2.end();
     console.log("path 2 : " + path2)
@@ -103,11 +104,83 @@ const config = {    //Parameters to connect to database. To change with the real
     
   app.post('/graded',urlencodedParser,async (req,res)=>{
     let mark = req.body.value;
-    mark = parseInt(mark)
-    console.log("grade = " + mark);
-    const connection3 = await initializeConnection(config);
-    //await connection3.execute('')
+    var isTrueSet = (req.body.two === 'true');
 
+    console.log("grade = " + mark);
+    let connection3 = ""
+    let result = ""
+    let result2 = ""
+    let result3 = ""
+    let result4 = ""
+    let IA_name = ""
+    let IA_name2 = ""
+    let hist_data_expert = ""
+    let hist_data_student = ""
+    try{
+        connection3 = await initializeConnection(config);
+        if(!isTrueSet){
+            await connection3.execute('INSERT INTO grade (value, id_user, id_contour) VALUES (?,?,?)', [mark,1,id1]);
+            [result] = await connection3.execute('SELECT manufacturer_name FROM contour WHERE id_contour = ?', [id1]);
+            IA_name = result.manufacturer_name;
+            [hist_data_expert] = await connection3.execute('SELECT value FROM grade JOIN contour ON grade.id_contour = contour.id_contour JOIN users ON grade.id_user = users.id_user WHERE contour.manufacturer_name = ? AND users.role = ?', [IA_name, "expert"]);
+            [hist_data_student] = await connection3.execute('SELECT value FROM grade JOIN contour ON grade.id_contour = contour.id_contour JOIN users ON grade.id_user = users.id_user WHERE contour.manufacturer_name = ? AND users.role = ?', [IA_name, "student"]);
+            res.send(hist_data_expert + "end1" + hist_data_student)
+        }else{
+            if(mark == 'L'){
+                await connection3.execute('UPDATE contour SET bonus = (bonus+1) WHERE id_contour = ?', [id1]);
+                await connection3.execute('UPDATE contour SET malus = (malus+1) WHERE id_contour = ?', [id2]);
+            }else if(mark == 'R'){
+                await connection3.execute('UPDATE contour SET bonus = (bonus+1) WHERE id_contour = ?', [id2]);
+                await connection3.execute('UPDATE contour SET malus = (malus+1) WHERE id_contour = ?', [id1]);
+            }else{
+                console.log("error : received value was not expected")
+            }
+            [result] = await connection3.execute('SELECT manufacturer_name, bonus, malus FROM contour WHERE id_contour = ?', [id1]);
+            IA_name = result.manufacturer_name;
+            [result2] = await connection3.execute('SELECT manufacturer_name, bonus, malus FROM contour WHERE id_contour = ?', [id2]);
+            IA_name2 = result2.manufacturer_name;
+            [result3] = await connection3.execute('SELECT bonus, malus FROM contour WHERE manufacturer_name = ?', [IA_name]);
+            [result4] = await connection3.execute('SELECT bonus, malus FROM contour WHERE manufacturer_name = ?', [IA_name2]);
+            let score1 = parseInt(result.bonus) - parseInt(result.malus)
+            let score2 = parseInt(result2.bonus) - parseInt(result2.malus)
+            let score3 = parseInt(result3.bonus) - parseInt(result3.malus)
+            let score4 = parseInt(result4.bonus) - parseInt(result4.malus)
+
+            res.send(
+            "Pour " + IA_name + " sur le contour du " + req.body.outline + " on a un score de " + score1 + "/n" +
+            "Pour " + IA_name2 + " sur le contour du " + req.body.outline + " on a un score de " + score2 + "/n" +
+            "Pour " + IA_name + " on a un score global de " + score3 + "/n" +
+            "Pour " + IA_name2 + " on a un score global de " + score4 + "/n")
+        }
+    }catch(e){console.log(e)}
+  })
+
+let configuration = "/CLASSIC"
+
+  app.post('/conf',urlencodedParser,(req,res)=>{
+    let configuration2 = ""
+    let conf = parseInt(req.body.conf);
+    var isTrueSet = (req.body.two === 'true');
+    let imgStr2 = ""
+    if(conf == 0){
+        configuration2 = "/CLASSIC"
+    }else if(conf == 1){
+        configuration2 = "/bones"
+    }else if(conf == 2){
+        configuration2 = "/lungs"
+    }else{
+        console.log("error did not receive coherent config")
+    }
+    //path1 = path1.replace(configuration,configuration2)
+    files1 = fs.readdirSync(path1)
+    let imgStr1 =  fs.readFileSync(path.join(path1,files1[parseInt(req.body.frame)]),"base64");
+    if(isTrueSet){
+        path2 = path2.replace(configuration,configuration2)
+        files2 = fs.readdirSync(path2)  
+        imgStr2 =  fs.readFileSync(path.join(path2,files2[parseInt(req.body.frame)]),"base64");
+    }
+    configuration = configuration2;
+    res.send(imgStr1 + "end1" + imgStr2)
   })
 
   

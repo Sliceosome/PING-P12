@@ -30,6 +30,8 @@ export default function Home() {
 
     var compt1 = 0;
     var z1 = 1;
+    var config = 0;
+    var resultat = "";
 
     const search = async e => {
         e.preventDefault();
@@ -63,7 +65,6 @@ export default function Home() {
         var context = canvas.getContext("2d");
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-        //context.putImageData(im, 0, 0,0,0,600,600);
         var image = new Image();
         image.src = im
         image.onload = function() {
@@ -76,7 +77,6 @@ export default function Home() {
     }
 
     function parsingImageData(string){
-        console.log(string)
         if(string != "Out of bounds"){
             let im = string.split("end1")
             let ima="data:image/jpg;charset=utf-8;base64, "+ im[0];
@@ -86,16 +86,6 @@ export default function Home() {
                 frames2.push(ima2);
                 console.log(frames2.length)
             }
-
-            // let width = string[1]+string[2]+string[3]
-            // width = parseInt(width);
-            // let height = string[6]+string[7]+string[8]
-            // height = parseInt(height);
-            // string = string.substring(15);
-            // let pix_array = string.split(",");
-            // pix_array = new Uint8ClampedArray(pix_array);
-            // //console.log(pix_array)
-            // var im = new ImageData(pix_array,height,width);
             frames.push(ima);
             return ima
         }else{console.log(string)}
@@ -140,13 +130,12 @@ export default function Home() {
                 two: compare,
             },
             function (data, status) {
-            console.log(status);
-            let im = parsingImageData(data);
-            drawCanvas(zone1,frames[compt1],z1);
-            //console.log("frames2 : " + frames2.length)
-            if(compare){
-                drawCanvas(zone2,frames2[compt1],z1);
-            }
+                console.log(status);
+                parsingImageData(data);
+                drawCanvas(zone1,frames[compt1],z1);
+                if(compare){
+                    drawCanvas(zone2,frames2[compt1],z1);
+                }
             });
         }
     }
@@ -170,25 +159,59 @@ export default function Home() {
                 two: compare,
             },
             function (data, status) {
-            console.log(status);
-            parsingImageData(data);
-            drawCanvas(zone1,frames[compt1],z1);
-            console.log(compare)
-            if(!compare){
-                drawCanvas(zone2,frames2[compt1],z1);
-            }
+                console.log(status);
+                parsingImageData(data);
+                drawCanvas(zone1,frames[compt1],z1);
+                if(!compare){
+                    drawCanvas(zone2,frames2[compt1],z1);
+                }
             });
         }
     }
 
     const graded = () => {  //TODO
         var note = document.getElementById("notation").value;
+        if(!compare){
+            note = parseInt(note)
+        }
         $.post("http://localhost:8080/graded",
             {
-                value: note
+                two: compare,
+                value: note,
+                outline : outline
             },
             function (data, status) {
-            console.log(status);
+                console.log(status);
+                if(!compare){
+                    let notes = data.split("end1");
+                }else{
+                    resultat = data;
+                }
+            });
+    }
+
+    const change_config = () => {
+        config ++;
+        var zone1 = document.getElementById("cv1");
+        var zone2 = document.getElementById("cv2");
+        $.post("http://localhost:8080/conf",
+            {
+                two : compare,
+                conf: config%2,
+                frame : compt1
+            },
+            function (data, status) {
+                console.log(status);
+                let im = data.split("end1")
+                let ima="data:image/jpg;charset=utf-8;base64, "+ im[0];
+                let ima2 = "";
+                frames[compt1] = ima;
+                drawCanvas(zone1,ima,z1);
+                if(im[1] != ""){
+                    ima2 = "data:image/jpg;charset=utf-8;base64, "+ im[1];
+                    frames2[compt1] = ima2;
+                    drawCanvas(zone2,ima2,z1);
+                }         
             });
     }
 
@@ -219,6 +242,7 @@ export default function Home() {
             <Button id="next1" onClick={next1}>next frame</Button>
             <Button id="z+1" onClick={zoom1}>zoom +</Button>
             <Button id="z-1" onClick={unzoom1}>zoom -</Button>
+            <Button id="config" onClick={change_config}>Change config</Button>
             <div id="display">
                 <div id = "canvas1" className={!showcv ? "instructions" : "offscreen"}>
                     <canvas id="cv1" width="600" height="600"></canvas>
@@ -231,16 +255,19 @@ export default function Home() {
             <div id="marks">
             {showtitle ? (
             <Form.Control
+                //type={compare ? "text" : "number"}
                 type="text"
                 id="notation"
                 required size="25"
                 value={grade}
-                placeholder = {compare ? "Left or Right for whichever outline is the better" : "Grade the outline on 4 points"}
+                placeholder = {compare ? "L or R for whichever outline is the better" : "Grade the outline on 4 points"}
+                maxLength="1"
                 onChange={(e) => setGrade(e.target.value)}
             />) : null}
              {showtitle ? (
              <Button id="sendGrade" onClick={graded}>Submit Grade</Button>) : null}
              </div>
+             <div id="conclude">{resultat}</div>
         <label id="title" htmlFor="images" value = {title} className={!showtitle ? "instructions" : "offscreen"}></label>
         </div>
 }
