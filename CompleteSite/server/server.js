@@ -7,6 +7,11 @@ const cors = require('cors');
 const fs = require('fs')
 const PORT = 8080;
 
+var jwt = require("jsonwebtoken");
+var bcrypt = require("bcryptjs");
+
+const secret = "application-secret-key";
+
 const {encrypt, decrypt} = require('./encryptionHandler');
 app.use(cors());
 app.use(express.json());
@@ -21,8 +26,8 @@ app.use(express.json());
 const config = {    //Parameters to connect to database. To change with the real parameters.
     host: 'localhost',
     user: 'root',
-    password: '',
-    database: 'test2'
+    password: '20002991',
+    database: 'login_information'
   };
   
   var connection = null;
@@ -119,8 +124,61 @@ const config = {    //Parameters to connect to database. To change with the real
     next();
   });
 
-app.post('/register', async (req, res) => {
-    const { username, email, password } = req.body;
+  app.post('/signin', async (req, res) => {
+    const { username, password } = req.body;
+    let user;
+    let db="";
+        let rows = "";
+        try{
+            db = await initializeConnection(config);
+            [rows] = await db.execute("SELECT COUNT( * ) AS existingAccount FROM users WHERE username=?;", [username])
+        }catch(e){console.log(e)}
+        if (rows[0].existingAccount===0)
+        {
+            res.status(404).send({ message: "User not found, please sign up !" });
+        }
+        else {
+            try{
+                const [result] = (await db.execute("SELECT * FROM users WHERE username=?;", [username]));
+                user = result[0];
+                console.log(user.username);
+                const encryptedPassword = { iv: user.iv, password: user.password };
+                const decryptedPassword = decrypt(encryptedPassword);
+                if (password!==decryptedPassword)
+                {
+                    res.status(401).send({
+                        accessToken: null,
+                        message: "Invalid Password !"
+                      });
+                } 
+                else 
+                {
+                         
+              var token = jwt.sign({ id: user.id }, secret, {
+                expiresIn: 86400 // 24 hours
+              });
+              debugger;
+              console.log(user.role);
+              try {
+                console.log(user.role);
+                res.status(200).send({
+                  id: user.id,
+                  username: user.username,
+                  email: user.email,
+                  role: user.role,
+                  accessToken: token, 
+                  message: "Logged in !"
+                });
+              } catch(err) {
+              res.status(500).send({ message: err.message });
+            }
+                }
+            }catch(e){console.log(e)}
+            }
+    });
+
+app.post('/signup', async (req, res) => {
+    const { username, email, password, role } = req.body;
     const hashedPassword = encrypt(password);
     let rows = ""
     let db =""
@@ -140,7 +198,7 @@ app.post('/register', async (req, res) => {
                 res.send("Username Taken");
             }
             else{
-                let [result] = await db.execute("INSERT INTO users (username, password, iv, email) VALUES (?,?,?,?)", [username, hashedPassword.password, hashedPassword.iv, email])
+                let [result] = await db.execute("INSERT INTO users (username, password, iv, email, role) VALUES (?,?,?,?,?)", [username, hashedPassword.password, hashedPassword.iv, email, role])
                 res.send("Success");
             }
         }catch(e){console.log(e)}
@@ -148,33 +206,5 @@ app.post('/register', async (req, res) => {
 
     });
 
-app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    let db="";
-    let rows = "";
-    try{
-        db = await initializeConnection(config);
-        [rows] = await db.execute("SELECT COUNT( * ) AS existingAccount FROM users WHERE username=?;", [username])
-    }catch(e){console.log(e)}
-    if (rows[0].existingAccount===0)
-    {
-        res.send("There is no existing username, please sign up !");
-    }
-    else {
-        try{
-            let [result] = await db.execute("SELECT * FROM users WHERE username=?;", [username])
-            const encryptedPassword = { iv: result[0].iv, password: result[0].password };
-            const decryptedPassword = decrypt(encryptedPassword);
-            if (password!==decryptedPassword)
-            {
-                res.send("This is not the right password, forgot password ?");
-            } 
-            else 
-            {
-                res.send("Logged in !");
-            }
-        }catch(e){console.log(e)}
-        }
-    });
 
 app.listen(PORT, () => console.log('API is running on http://localhost:8080'));

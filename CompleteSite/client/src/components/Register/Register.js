@@ -1,18 +1,18 @@
 import { useRef, useState, useEffect } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import PropTypes from 'prop-types';
 import Axios from 'axios';
 import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link } from "react-router-dom";
-import Home from '../Home/Home';
+import { Link, useNavigate } from "react-router-dom";
+import SplitButton from "../../visualTools/splitButton";
+import "./Register.css";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
-const EMAIL_REGEX = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+const EMAIL_REGEX = /^(([^<>()[\],;:\s@"]+(\.[^<>()[\],;:\s@"]+)*)|(".+"))@(([^<>()[\],;:\s@"]+\.)+[^<>()[\],;:\s@"]{2,})$/i;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!.@#$%]).{8,24}$/;
 
-function Register() {
+function Register(props) {
 
     const userRef = useRef();
     const errRef = useRef();
@@ -33,8 +33,14 @@ function Register() {
     const [validMatch, setValidMatch] = useState(false);
     const [matchFocus, setMatchFocus] = useState(false);
 
+    const [role, setRole] = useState('');
+
     const [errMsg, setErrMsg] = useState('');
     const [success, setSuccess] = useState(false);
+    
+    const navigate = useNavigate();
+
+    const options = [ 'Choose Your Role :', 'Expert', 'Student' ];
 
     useEffect(() => {
       userRef.current.focus();
@@ -69,13 +75,15 @@ function Register() {
       return;
     }
     try {
-      const response = await Axios.post('http://localhost:8080/register', 
+      const response = await Axios.post('http://localhost:8080/signup', 
       {username: user,
         email: email,
         password: pwd,
+        role: role,
       });
       if (response.data==="Success")
       {
+        navigate('/login');
         setUser('');
         setEmail('');
         setPwd('');
@@ -103,8 +111,15 @@ function Register() {
       </section>
     ) : (
       <section className="Register-wrapper">
+        <div>
         <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
         <h1>Please Sign Up</h1>
+          <img
+            src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
+            alt="profile-img"
+            className="profile-img-card"
+          />
+
       <Form onSubmit={handleSubmit}>
         <Form.Group size="lg" controlId="text">
           <Form.Label>
@@ -205,6 +220,11 @@ function Register() {
             Must match the first password input field.
           </p>
         </Form.Group>
+
+        <div className="form-group">
+          <label htmlFor="Type of user">Type of user</label>
+          <SplitButton options={options} setChoice={setRole} />
+        </div>
         
         <Button block="true" size="lg" type="submit">
           Sign up
@@ -213,9 +233,10 @@ function Register() {
       <p>
         Already registered ?<br />
         <span className="line">
-          <Link to="/">Sign In</Link>
+          <Link to="/login">Sign In</Link>
         </span>
       </p>
+      </div>
        </section>
 
     )}

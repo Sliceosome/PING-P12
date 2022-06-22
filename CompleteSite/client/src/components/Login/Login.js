@@ -1,22 +1,24 @@
 import React, { useRef, useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import "./Login.css";
 
-export default function Login({ setToken }) {
+export default function Login(props) {
   
-
     const userRef = useRef();
     const errRef = useRef();
 
     const [user, setUser] = useState('');
     const [pwd, setPwd] = useState('');
 
+    const [loading, setLoading] = useState(false);
+
     const [errMsg, setErrMsg] = useState('');
     const [success, setSuccess] = useState(false);
+    
+    const navigate = useNavigate();
 
   useEffect(() => {
     userRef.current.focus();
@@ -26,29 +28,39 @@ export default function Login({ setToken }) {
     setErrMsg('');
   }, [user, pwd])
 
-
-  const handleSubmit = async e => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     
-    try {
-      const response = await Axios.post('http://localhost:8080/login', 
-        {username: user,
-          password: pwd,
-        });
-        setToken(response);
-        if(response?.data==="Logged in !")
+      setLoading(true);
+      try {
+      const response = await Axios.post('http://localhost:8080/signin', 
+      {username: user,
+        password: pwd,
+      });
+      if (response.data.accessToken) {
+        localStorage.setItem("user", JSON.stringify(response.data));
+        console.log(response.data);
+      }
+        if(response?.data.message==="Logged in !")
         {
+          navigate('/profile');
+          console.log("Here");
           setUser('');
           setPwd('');
           setSuccess(true);
+          console.log(success);
+          setLoading(false);
         }
         else{
           setErrMsg(response.data);
+          setLoading(false);
         }
-    } catch (e) {
-      setErrMsg('Login Failed');
-      errRef.current.focus();
-    }
+      }
+      catch (err) {
+        setErrMsg('Login Failed');
+        errRef.current.focus();
+        setLoading(false);
+      }
   }
 
   return (
@@ -61,6 +73,11 @@ export default function Login({ setToken }) {
     <section className="Login">
       <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
       <h1>Please Log In</h1>
+      <img
+            src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
+            alt="profile-img"
+            className="profile-img-card"
+          />
       <Form onSubmit={handleSubmit}>
         <Form.Group size="lg" controlId="username">
           <Form.Label>Username :</Form.Label>
@@ -83,9 +100,12 @@ export default function Login({ setToken }) {
             onChange={(e) => setPwd(e.target.value)}
           />
         </Form.Group>
-        <Button block="true" size="lg" type="submit">
+        <Button block="true" size="lg" type="submit" id="button" disabled={loading}>
           Sign In
         </Button>
+        {loading && (
+                  <span className="spinner-border spinner-border-sm"></span>
+                )}
       </Form>
       <p>
         Don't have an account ?<br />
@@ -94,11 +114,7 @@ export default function Login({ setToken }) {
         </span>
       </p>
     </section>
-)}
+  )}
     </>
-  )
-}
-
-Login.propTypes = {
-  setToken: PropTypes.func.isRequired
+  );
 }
