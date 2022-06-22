@@ -13,11 +13,11 @@ dicomFolder = '.\Initial_Files\TESTS'
 # Path of DATABASE
 destinationFolder = 'C:\DATABASE'
 # Enable : True | Disable : False the parameters  window and level
-activateWindowLevel = False
-window = 1500
-level = -600
+activateWindowLevel = True
+window = 1500 # Bone : 1800 | Lung : 1500
+level = -600  # Bone : 400 | Lung : -600
 # PNG folder's name
-folderJPGName = 'classic'
+folderJPGName = 'lung'
 ##########################################
 
 ############### ALGORITHME ###############
