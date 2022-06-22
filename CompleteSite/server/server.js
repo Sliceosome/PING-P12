@@ -139,18 +139,18 @@ const config = {    //Parameters to connect to database. To change with the real
             IA_name = result[0].manufacturer_name;
             [result2] = await connection3.execute('SELECT manufacturer_name, bonus, malus FROM contour WHERE id_contour = ?', [id2]);
             IA_name2 = result2[0].manufacturer_name;
-            [result3] = await connection3.execute('SELECT bonus, malus FROM contour WHERE manufacturer_name = ?', [IA_name]);
-            [result4] = await connection3.execute('SELECT bonus, malus FROM contour WHERE manufacturer_name = ?', [IA_name2]);
-            let score1 = parseInt(result.bonus) - parseInt(result.malus)
-            let score2 = parseInt(result2.bonus) - parseInt(result2.malus)
-            let score3 = parseInt(result3.bonus) - parseInt(result3.malus)
-            let score4 = parseInt(result4.bonus) - parseInt(result4.malus)
+            [result3] = await connection3.execute('SELECT SUM(bonus) AS bon, SUM(malus) AS mal FROM contour WHERE manufacturer_name = ?', [IA_name]);
+            [result4] = await connection3.execute('SELECT SUM(bonus) AS bon, SUM(malus) AS mal FROM contour WHERE manufacturer_name = ?', [IA_name2]);
+            let score1 = parseInt(result[0].bonus) - parseInt(result[0].malus)
+            let score2 = parseInt(result2[0].bonus) - parseInt(result2[0].malus)
+            let score3 = parseInt(result3[0].bon) - parseInt(result3[0].mal)
+            let score4 = parseInt(result4[0].bon) - parseInt(result4[0].mal)
 
             res.send(
-            "Pour " + IA_name + " sur le contour du " + req.body.outline + " on a un score de " + score1 + "/n" +
-            "Pour " + IA_name2 + " sur le contour du " + req.body.outline + " on a un score de " + score2 + "/n" +
-            "Pour " + IA_name + " on a un score global de " + score3 + "/n" +
-            "Pour " + IA_name2 + " on a un score global de " + score4 + "/n")
+            "Pour " + IA_name + " sur le contour du " + req.body.outline + " on a un score de " + score1 + "\r\n" +
+            "Pour " + IA_name2 + " sur le contour du " + req.body.outline + " on a un score de " + score2 + "\r\n" +
+            "Pour " + IA_name + " on a un score global de " + score3 + "\r\n" +
+            "Pour " + IA_name2 + " on a un score global de " + score4 + "\r\n")
         }
     }catch(e){console.log(e)}
   })

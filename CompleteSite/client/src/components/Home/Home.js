@@ -15,6 +15,7 @@ export default function Home() {
     const [title, setTitle] = useState('');
     const [grade, setGrade] = useState('');
     const [outline, setOutline] = useState('');
+    const [score, setScore] = useState('');
     const [compare, setCompare] = useState(false);
     const [showtitle, setShowTitle] = useState(false);
     const [showcv, setShowCv] = useState(false);
@@ -26,12 +27,10 @@ export default function Home() {
         document.getElementById("canvas1").className = showcv;},[showcv]);
     useEffect(() => {    // Met à jour   
         document.getElementById("canvas2").className = showcv2;},[showcv2]);
-    
 
     var compt1 = 0;
     var z1 = 1;
     var config = 0;
-    var resultat = "";
 
     const search = async e => {
         e.preventDefault();
@@ -168,7 +167,6 @@ export default function Home() {
             });
         }
     }
-
     const graded = () => {  //TODO
         var note = document.getElementById("notation").value;
         if(!compare){
@@ -183,9 +181,12 @@ export default function Home() {
             function (data, status) {
                 console.log(status);
                 if(!compare){
-                    let notes = data.split("end1");
+                    let notes = data.split("end1"); //TODO : envoyer notes[0] et notes[1] au composant react d'histogramme
                 }else{
-                    resultat = data;
+                    let resultat = data;
+                    setScore(resultat);
+                    console.log(resultat)
+
                 }
             });
     }
@@ -267,7 +268,7 @@ export default function Home() {
              {showtitle ? (
              <Button id="sendGrade" onClick={graded}>Submit Grade</Button>) : null}
              </div>
-             <div id="conclude">{resultat}</div>
+             <div id="conclude">{score}</div>
         <label id="title" htmlFor="images" value = {title} className={!showtitle ? "instructions" : "offscreen"}></label>
         </div>
 }
