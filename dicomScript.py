@@ -1,15 +1,30 @@
+################# IMPORTS ################
 import pydicom as pd
 from pydicom import dcmread
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from bresenham import bresenham
+##########################################
 
+############### PARAMETERS ###############
+# Path of your scans folder
+dicomFolder = '.\Initial_Files\TESTS'
+# Path of DATABASE
+destinationFolder = 'C:\DATABASE'
+# Enable : True | Disable : False the parameters  window and level
+activateWindowLevel = False
+window = 1500
+level = -600
+# PNG folder's name
+folderJPGName = 'classic'
+##########################################
+
+############### ALGORITHME ###############
 def load_data(sample, roiNumber):
     data=dict()
-    # dcms data
     dcms_data=dict()
     for dcm_file in sample['dcm_files']:
-        # print(dcm_file)
         ds = pd.dcmread(dcm_file)
         array = ds.pixel_array
         origin = ds.ImagePositionPatient
@@ -18,7 +33,6 @@ def load_data(sample, roiNumber):
         dcms_data[uid] = {'dcmSpacing': spacing, 'dcmOrigin': origin, 'array': array}
     data['dcms_data']=dcms_data
 
-    # rt data
     rt_data = dict()
     ds = pd.dcmread(sample['rt_file'])
     sequences = ds.ROIContourSequence[roiNumber].ContourSequence
@@ -66,12 +80,6 @@ def setDicomWinWidthWinCenter(img_data, winwidth, wincenter, rows, cols):
 
     return img_temp
 
-dicomFolder = '.\Initial_Files\TESTS'
-destinationFolder = 'C:\DATABASE'
-window = 1500
-level = -600
-folderJPGName = 'classic'
-
 scanList =  [dicomFolder + "\\" + s for s in os.listdir(dicomFolder)]
 
 for scan in scanList:
@@ -111,7 +119,6 @@ for scan in scanList:
                 ctPathList = []
                 for ContourSequence in ROIContourSequence.ContourSequence:
                     ctPathList.append(scan + '\\CT_' + ContourSequence.ContourImageSequence[0].ReferencedSOPInstanceUID + '.dcm')
-                # print(ctPathList)
 
                 dictDicomFiles = {"dcm_files" : ctPathList, "rt_file" : rtPath}
                 roiNumber = ROIContourSequence.ReferencedROINumber - 1
@@ -121,36 +128,29 @@ for scan in scanList:
                 for key in dataPoint.keys():
 
                     listDataPoint = list(dataPoint[key])
-                    listDataPointShift = listDataPoint[-1:] + listDataPoint[:-1]
 
-                    A = []
-                    B = []
+                    listDataPoint.append(listDataPoint[0])
                     i = 0
-                    while i < len(listDataPoint):
-                        tempA = []
-                        tempB = []
-                        tempA.append(listDataPoint[i][0])
-                        tempA.append(listDataPointShift[i][0])
-                        tempB.append(listDataPoint[i][1])
-                        tempB.append(listDataPointShift[i][1])
-                        A.append(tempA)
-                        B.append(tempB)
+                    listDataPointTemp = []
+                    while i < len(listDataPoint) - 1:
+                        listDataPointTemp = listDataPointTemp + list(bresenham(listDataPoint[i][0], listDataPoint[i][1], listDataPoint[i+1][0], listDataPoint[i+1][1]))
                         i = i + 1
+
+                    listDataPointFinal = []
                     
-                    # with open("output.txt", "w") as f:
-                    #     print(listDataPoint, file=f)
+                    for element in listDataPointTemp:
+                        if element not in listDataPointFinal:
+                            listDataPointFinal.append(element)
 
                     ctFile = scan + '\\CT_' + key + '.dcm'
                     ds = dcmread(ctFile)
-                    img = ds.pixel_array * ds.RescaleSlope + ds.RescaleIntercept
+                    image = ds.pixel_array * ds.RescaleSlope + ds.RescaleIntercept
 
-                    image = setDicomWinWidthWinCenter(img, window, level, len(img), len(img))
+                    if activateWindowLevel == True:
+                        image = setDicomWinWidthWinCenter(image, window, level, len(image), len(image))
 
-                    j = 0
-                    while j < len(A):
-                        plt.plot(A[j], B[j], color="magenta", linewidth=0.3)
-                        j = j + 1
-
+                    for item in listDataPointFinal:
+                        plt.plot(item[0], item[1], marker='o', color="magenta", markersize=0.25) 
                     plt.imshow(image, 'gray')
                     plt.axis('off')
 
@@ -159,9 +159,10 @@ for scan in scanList:
                             if structureSetROISequence.ROINumber == ROIContourSequence.ReferencedROINumber:
                                 organName = structureSetROISequence.ROIName
                     try:
-                        plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\' + folderJPGName + '\\' + str(key).replace('.',"_") + '.jpg', bbox_inches='tight', pad_inches=0, dpi=138.7)
+                        plt.savefig(destinationFolder + '\\' + organName + '\\' + scanFolder + '\\' + rtFolder + '\\' + folderJPGName + '\\' + str(key).replace('.',"_") + '.png', bbox_inches='tight', pad_inches=0, dpi=138.7)
                         plt.close()
                     except:
-                        print("ERROR 1")
+                        print("ERROR")
             except:
-                print("ERROR 2")
+                print("ERROR")
+##########################################
