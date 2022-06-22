@@ -13,7 +13,7 @@ dicomFolder = '.\Initial_Files\TESTS'
 # Path of DATABASE
 destinationFolder = 'C:\DATABASE'
 # Enable : True | Disable : False the parameters  window and level
-activateWindowLevel = True
+activateWindowLevel = False
 window = 1500
 level = -600
 # PNG folder's name
