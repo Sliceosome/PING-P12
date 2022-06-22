@@ -22,7 +22,7 @@ const config = {    //Parameters to connect to database. To change with the real
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'test2'
+    database: 'contour_evaluation'
   };
   
   var connection = null;
@@ -121,7 +121,7 @@ const config = {    //Parameters to connect to database. To change with the real
         if(!isTrueSet){
             await connection3.execute('INSERT INTO grade (value, id_user, id_contour) VALUES (?,?,?)', [mark,1,id1]);
             [result] = await connection3.execute('SELECT manufacturer_name FROM contour WHERE id_contour = ?', [id1]);
-            IA_name = result.manufacturer_name;
+            IA_name = result[0].manufacturer_name;
             [hist_data_expert] = await connection3.execute('SELECT value FROM grade JOIN contour ON grade.id_contour = contour.id_contour JOIN users ON grade.id_user = users.id_user WHERE contour.manufacturer_name = ? AND users.role = ?', [IA_name, "expert"]);
             [hist_data_student] = await connection3.execute('SELECT value FROM grade JOIN contour ON grade.id_contour = contour.id_contour JOIN users ON grade.id_user = users.id_user WHERE contour.manufacturer_name = ? AND users.role = ?', [IA_name, "student"]);
             res.send(hist_data_expert + "end1" + hist_data_student)
@@ -136,9 +136,9 @@ const config = {    //Parameters to connect to database. To change with the real
                 console.log("error : received value was not expected")
             }
             [result] = await connection3.execute('SELECT manufacturer_name, bonus, malus FROM contour WHERE id_contour = ?', [id1]);
-            IA_name = result.manufacturer_name;
+            IA_name = result[0].manufacturer_name;
             [result2] = await connection3.execute('SELECT manufacturer_name, bonus, malus FROM contour WHERE id_contour = ?', [id2]);
-            IA_name2 = result2.manufacturer_name;
+            IA_name2 = result2[0].manufacturer_name;
             [result3] = await connection3.execute('SELECT bonus, malus FROM contour WHERE manufacturer_name = ?', [IA_name]);
             [result4] = await connection3.execute('SELECT bonus, malus FROM contour WHERE manufacturer_name = ?', [IA_name2]);
             let score1 = parseInt(result.bonus) - parseInt(result.malus)

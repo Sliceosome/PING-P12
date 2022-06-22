@@ -172,7 +172,7 @@ export default function Home() {
     const graded = () => {  //TODO
         var note = document.getElementById("notation").value;
         if(!compare){
-            note = parseInt(note)
+            note = parseInt(note)%5
         }
         $.post("http://localhost:8080/graded",
             {
