@@ -9,7 +9,7 @@ try:
     cursor = connector.cursor()
 
     # Folders
-    contoursFolder = 'C:\\DATABASE\\'
+    contoursFolder = './DATABASE/'
 
     # Fill "organ" table
     organList = os.listdir(contoursFolder)
