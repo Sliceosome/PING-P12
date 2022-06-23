@@ -7,6 +7,11 @@ const cors = require('cors');
 const fs = require('fs')
 const PORT = 8080;
 
+var jwt = require("jsonwebtoken");
+var bcrypt = require("bcryptjs");
+
+const secret = "application-secret-key";
+
 const {encrypt, decrypt} = require('./encryptionHandler');
 app.use(cors());
 app.use(express.json());
@@ -21,8 +26,8 @@ app.use(express.json());
 const config = {    //Parameters to connect to database. To change with the real parameters.
     host: 'localhost',
     user: 'root',
-    password: '',
-    database: 'contour_evaluation'
+    password: '20002991',
+    database: 'login_information'
   };
   
   var connection = null;
@@ -63,7 +68,7 @@ const config = {    //Parameters to connect to database. To change with the real
   var path2 = "";
   var files1 = "";
   var files2 = "";
-  var imgStr2 = "";
+  let imgStr2 = "";
   
   app.post('/request',urlencodedParser, async (req,res)=>{
     const connection2 = await initializeConnection(config);
@@ -86,7 +91,7 @@ const config = {    //Parameters to connect to database. To change with the real
         imgStr2 =  fs.readFileSync(path.join(path2,files2[0]),"base64");
     }  
 
-    res.send(imgStr1 + "end1" + imgStr2)
+    res.send(imgStr1 + "end1" + imgStr2);
   });
   
   app.post('/unknown_frame',urlencodedParser,(req,res)=>{
@@ -153,9 +158,10 @@ const config = {    //Parameters to connect to database. To change with the real
             "Pour " + IA_name2 + " on a un score global de " + score4 + "\r\n")
         }
     }catch(e){console.log(e)}
+
   })
 
-let configuration = "/CLASSIC"
+  let configuration = "/CLASSIC"
 
   app.post('/conf',urlencodedParser,(req,res)=>{
     let configuration2 = ""
@@ -182,7 +188,6 @@ let configuration = "/CLASSIC"
     configuration = configuration2;
     res.send(imgStr1 + "end1" + imgStr2)
   })
-
   
   app.use(function(request, response, next) {
     response.header("Access-Control-Allow-Origin", '*');
@@ -192,8 +197,61 @@ let configuration = "/CLASSIC"
     next();
   });
 
-app.post('/register', async (req, res) => {
-    const { username, email, password } = req.body;
+  app.post('/signin', async (req, res) => {
+    const { username, password } = req.body;
+    let user;
+    let db="";
+        let rows = "";
+        try{
+            db = await initializeConnection(config);
+            [rows] = await db.execute("SELECT COUNT( * ) AS existingAccount FROM users WHERE username=?;", [username])
+        }catch(e){console.log(e)}
+        if (rows[0].existingAccount===0)
+        {
+            res.send({ message: "User not found, please sign up !" });
+        }
+        else {
+            try{
+                const [result] = (await db.execute("SELECT * FROM users WHERE username=?;", [username]));
+                user = result[0];
+                console.log(user.username);
+                const encryptedPassword = { iv: user.iv, password: user.password };
+                const decryptedPassword = decrypt(encryptedPassword);
+                if (password!==decryptedPassword)
+                {
+                    res.send({
+                        accessToken: null,
+                        message: "Invalid Password !"
+                      });
+                } 
+                else 
+                {
+                         
+              var token = jwt.sign({ id: user.id }, secret, {
+                expiresIn: 86400 // 24 hours
+              });
+              debugger;
+              console.log(user.role);
+              try {
+                console.log(user.role);
+                res.status(200).send({
+                  id: user.id,
+                  username: user.username,
+                  email: user.email,
+                  role: user.role,
+                  accessToken: token, 
+                  message: "Logged in !"
+                });
+              } catch(err) {
+              res.send({ message: err.message });
+            }
+                }
+            }catch(e){console.log(e)}
+            }
+    });
+
+app.post('/signup', async (req, res) => {
+    const { username, email, password, role } = req.body;
     const hashedPassword = encrypt(password);
     let rows = ""
     let db =""
@@ -213,7 +271,7 @@ app.post('/register', async (req, res) => {
                 res.send("Username Taken");
             }
             else{
-                let [result] = await db.execute("INSERT INTO users (username, password, iv, email) VALUES (?,?,?,?)", [username, hashedPassword.password, hashedPassword.iv, email])
+                let [result] = await db.execute("INSERT INTO users (username, password, iv, email, role) VALUES (?,?,?,?,?)", [username, hashedPassword.password, hashedPassword.iv, email, role])
                 res.send("Success");
             }
         }catch(e){console.log(e)}
@@ -221,33 +279,5 @@ app.post('/register', async (req, res) => {
 
     });
 
-app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    let db="";
-    let rows = "";
-    try{
-        db = await initializeConnection(config);
-        [rows] = await db.execute("SELECT COUNT( * ) AS existingAccount FROM users WHERE username=?;", [username])
-    }catch(e){console.log(e)}
-    if (rows[0].existingAccount===0)
-    {
-        res.send("There is no existing username, please sign up !");
-    }
-    else {
-        try{
-            let [result] = await db.execute("SELECT * FROM users WHERE username=?;", [username])
-            const encryptedPassword = { iv: result[0].iv, password: result[0].password };
-            const decryptedPassword = decrypt(encryptedPassword);
-            if (password!==decryptedPassword)
-            {
-                res.send("This is not the right password, forgot password ?");
-            } 
-            else 
-            {
-                res.send("Logged in !");
-            }
-        }catch(e){console.log(e)}
-        }
-    });
 
 app.listen(PORT, () => console.log('API is running on http://localhost:8080'));
