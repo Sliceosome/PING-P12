@@ -26,8 +26,8 @@ app.use(express.json());
 const config = {    //Parameters to connect to database. To change with the real parameters.
     host: 'localhost',
     user: 'root',
-    password: '20002991',
-    database: 'login_information'
+    password: '',
+    database: 'contour_evaluation'
   };
   
   var connection = null;
@@ -75,9 +75,9 @@ const config = {    //Parameters to connect to database. To change with the real
     let [rows,fields] = await connection2.execute('SELECT organ.name, contour.id_contour, contour.folder_path FROM organ INNER JOIN contour ON organ.id_organ = contour.id_organ WHERE organ.name = ? order by rand()',[req.body.outline])
     path1 = rows[0].folder_path;
     id1 = rows[0].id_contour;
-    path1 = path1 + "/CLASSIC"
+    path1 = path1 + "/classic"
     if(req.body.two){
-        path2 = rows[1].folder_path + "/CLASSIC"
+        path2 = rows[1].folder_path + "/classic"
         id2 = rows[1].id_contour;
     }
     connection2.end();
@@ -161,7 +161,7 @@ const config = {    //Parameters to connect to database. To change with the real
 
   })
 
-  let configuration = "/CLASSIC"
+  let configuration = "/classic"
 
   app.post('/conf',urlencodedParser,(req,res)=>{
     let configuration2 = ""
@@ -169,15 +169,15 @@ const config = {    //Parameters to connect to database. To change with the real
     var isTrueSet = (req.body.two === 'true');
     let imgStr2 = ""
     if(conf == 0){
-        configuration2 = "/CLASSIC"
+        configuration2 = "/classic"
     }else if(conf == 1){
-        configuration2 = "/bones"
+        configuration2 = "/bone"
     }else if(conf == 2){
-        configuration2 = "/lungs"
+        configuration2 = "/lung"
     }else{
         console.log("error did not receive coherent config")
     }
-    //path1 = path1.replace(configuration,configuration2)
+    path1 = path1.replace(configuration,configuration2)
     files1 = fs.readdirSync(path1)
     let imgStr1 =  fs.readFileSync(path.join(path1,files1[parseInt(req.body.frame)]),"base64");
     if(isTrueSet){

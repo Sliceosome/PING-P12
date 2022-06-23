@@ -40,7 +40,7 @@ export default function Home() {
                 two: compare,
                 outline: outline
             });
-            console.log(response.status);
+            console.log("statuts = " + response.status);
             setTitle('Outline : '+ outline);
             var zone1 = document.getElementById("cv1");
             let im = parsingImageData(response.data);
@@ -77,12 +77,11 @@ export default function Home() {
     function parsingImageData(string){
         if(string !== "Out of bounds"){
             let im = string.split("end1")
-            let ima="data:image/jpg;charset=utf-8;base64, "+ im[0];
+            let ima="data:image/png;charset=utf-8;base64, "+ im[0];
             let ima2 = "";
             if(im[1] !== ""){
-                ima2 = "data:image/jpg;charset=utf-8;base64, "+ im[1];
+                ima2 = "data:image/png;charset=utf-8;base64, "+ im[1];
                 frames2.push(ima2);
-                console.log(frames2.length)
             }
             frames.push(ima);
             return ima
@@ -128,7 +127,7 @@ export default function Home() {
                 two: compare,
             },
             function (data, status) {
-                console.log(status);
+                console.log("status = " + status);
                 parsingImageData(data);
                 drawCanvas(zone1,frames[compt1],z1);
                 if(compare){
@@ -157,7 +156,7 @@ export default function Home() {
                 two: compare,
             },
             function (data, status) {
-                console.log(status);
+                console.log("status = " + status);
                 parsingImageData(data);
                 drawCanvas(zone1,frames[compt1],z1);
                 if(!compare){
@@ -178,13 +177,13 @@ export default function Home() {
                 outline : outline
             },
             function (data, status) {
-                console.log(status);
+                console.log("status = " + status);
                 if(!compare){
                     let notes = data.split("end1"); //TODO : envoyer notes[0] et notes[1] au composant react d'histogramme
                 }else{
                     let resultat = data;
                     setScore(resultat);
-                    console.log(resultat)
+                    console.log("res compare = " + resultat)
 
                 }
             });
@@ -197,18 +196,18 @@ export default function Home() {
         $.post("http://localhost:8080/conf",
             {
                 two : compare,
-                conf: config%2,
+                conf: config%3,
                 frame : compt1
             },
             function (data, status) {
-                console.log(status);
+                console.log("status = " + status);
                 let im = data.split("end1")
-                let ima="data:image/jpg;charset=utf-8;base64, "+ im[0];
+                let ima="data:image/png;charset=utf-8;base64, "+ im[0];
                 let ima2 = "";
                 frames[compt1] = ima;
                 drawCanvas(zone1,ima,z1);
                 if(im[1] !== ""){
-                    ima2 = "data:image/jpg;charset=utf-8;base64, "+ im[1];
+                    ima2 = "data:image/png;charset=utf-8;base64, "+ im[1];
                     frames2[compt1] = ima2;
                     drawCanvas(zone2,ima2,z1);
                 }         
