@@ -1,15 +1,20 @@
+################# IMPORTS ################
 import mysql.connector as mc
 import os
 import pydicom as pd
 from pydicom import dcmread
+##########################################
 
+############### PARAMETERS ###############
+# Database folder
+contoursFolder = './DATABASE/'
+##########################################
+
+############### ALGORITHME ###############
 try:
     # Database connection
     connector = mc.connect(host = 'localhost', database = 'contour_evaluation', user = 'root', password = '')
     cursor = connector.cursor()
-
-    # Folders
-    contoursFolder = './DATABASE/'
 
     # Fill "organ" table
     organList = os.listdir(contoursFolder)
@@ -70,3 +75,4 @@ finally:
     if(connector.is_connected()):
         cursor.close()
         connector.close()
+##########################################
